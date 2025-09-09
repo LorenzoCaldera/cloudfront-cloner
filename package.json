@@ -1,0 +1,7 @@
+{
+  "type": "module",
+  "dependencies": {
+    "@aws-sdk/client-cloudfront": "^3.883.0",
+    "@aws-sdk/credential-providers": "^3.883.0"
+  }
+}

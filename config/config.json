@@ -1,0 +1,7 @@
+{
+  "ssoOriginAccount": "origin-account",
+  "ssoDestinationAccount": "destination-account",
+  "awsRegion": "us-east-1",
+  "originDistributionId": "E1EXAMPLE123",
+  "destinationDistributionId": "E2EXAMPLE456"
+}
