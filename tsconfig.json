@@ -1,13 +1,15 @@
 {
   "compilerOptions": {
     /* Output */
-    "target": "ES2020",                         
-    "module": "CommonJS",                       
+    "target": "ES2022",                         
+    "module": "ESNext",                       
     "outDir": "./dist",                         
     "rootDir": "./src",                         
 
     /* Strictness */
-    "strict": true,                             
+    "strict": true,
+    "erasableSyntaxOnly": true,
+    "noUncheckedSideEffectImports": true,                             
     "noImplicitAny": true,                      
     "strictNullChecks": true,                   
     "strictFunctionTypes": true,                
@@ -16,7 +18,8 @@
 
     /* Module resolution */
     "moduleResolution": "node",                 
-    "esModuleInterop": true,                    
+    "esModuleInterop": true,   
+    "removeComments": true,                 
     "forceConsistentCasingInFileNames": true,   
     "resolveJsonModule": true,                  
     "allowSyntheticDefaultImports": true,       
