@@ -24,7 +24,7 @@ export async function getDistributionConfig(
   try {
     const command = new GetDistributionConfigCommand({ Id: distributionId });
     const response = await client.send(command);
-    
+
     if (!response.DistributionConfig) {
       throw new Error(`No se encontró la configuración para la distribución con ID: ${distributionId}`);
     }

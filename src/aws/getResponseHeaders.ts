@@ -20,6 +20,10 @@ export const getResponseHeadersPolicies = async (
     const command = new ListResponseHeadersPoliciesCommand({ Type: responseType });
     const response = await client.send(command);
 
+    if (response.ResponseHeadersPolicyList?.NextMarker) {
+      throw new Error("Pagination not implemented yet.");
+    }
+
     if (!response.ResponseHeadersPolicyList || !response.ResponseHeadersPolicyList.Items) {
       throw new Error("No response headers policies found.");
     }
@@ -30,4 +34,4 @@ export const getResponseHeadersPolicies = async (
     throw error;
   }
 }
-   
+

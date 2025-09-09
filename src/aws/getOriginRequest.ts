@@ -17,8 +17,12 @@ export const getOriginRequestPolicies = async (
   });
 
   try {
-    const command = new ListOriginRequestPoliciesCommand({ Type: responseType});
+    const command = new ListOriginRequestPoliciesCommand({ Type: responseType });
     const response = await client.send(command);
+
+    if (response.OriginRequestPolicyList?.NextMarker) {
+      throw new Error("Pagination not implemented yet.");
+    }
 
     if (!response.OriginRequestPolicyList || !response.OriginRequestPolicyList.Items) {
       throw new Error("No origin request policies found.");

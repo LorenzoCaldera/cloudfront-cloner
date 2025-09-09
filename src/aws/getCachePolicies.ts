@@ -17,8 +17,12 @@ export const getCachePolicies = async (
   });
 
   try {
-    const command = new ListCachePoliciesCommand({ Type: responseType});
+    const command = new ListCachePoliciesCommand({ Type: responseType });
     const response = await client.send(command);
+
+    if (response.CachePolicyList?.NextMarker) {
+      throw new Error("Pagination not implemented yet.");
+    }
 
     if (!response.CachePolicyList || !response.CachePolicyList.Items) {
       throw new Error("No cache policies found.");
