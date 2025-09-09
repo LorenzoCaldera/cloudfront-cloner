@@ -1,41 +1,41 @@
 {
   "compilerOptions": {
     /* Output */
-    "target": "ES2022",                         
-    "module": "ESNext",                       
-    "outDir": "./dist",                         
-    "rootDir": "./src",                         
-
+    "target": "ES2022",
+    "module": "ESNext",
+    "outDir": "./dist",
+    "rootDir": "./src",
     /* Strictness */
     "strict": true,
     "erasableSyntaxOnly": true,
-    "noUncheckedSideEffectImports": true,                             
-    "noImplicitAny": true,                      
-    "strictNullChecks": true,                   
-    "strictFunctionTypes": true,                
-    "strictBindCallApply": true,                
-    "alwaysStrict": true,                       
-
+    "noUncheckedSideEffectImports": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "alwaysStrict": true,
     /* Module resolution */
-    "moduleResolution": "node",                 
-    "esModuleInterop": true,   
-    "removeComments": true,                 
-    "forceConsistentCasingInFileNames": true,   
-    "resolveJsonModule": true,                  
-    "allowSyntheticDefaultImports": true,       
-
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "removeComments": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
     /* Source maps & debugging */
-    "sourceMap": true,                          
-    "inlineSources": true,                      
-
+    "sourceMap": true,
+    "inlineSources": true,
     /* Modern TS goodies */
-    "skipLibCheck": true,                       
-    "isolatedModules": true,                    
-    "noUnusedLocals": true,                     
-    "noUnusedParameters": true,                 
-    "noFallthroughCasesInSwitch": true          
-
+    "skipLibCheck": true,
+    "isolatedModules": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist"]
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
 }
