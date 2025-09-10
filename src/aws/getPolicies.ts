@@ -1,34 +1,25 @@
 import {
   CloudFrontClient,
   ListCachePoliciesCommand,
-  ListCachePoliciesCommandOutput,
   ListOriginRequestPoliciesCommand,
-  ListOriginRequestPoliciesCommandOutput,
   ListResponseHeadersPoliciesCommand,
-  ListResponseHeadersPoliciesCommandOutput
 } from "@aws-sdk/client-cloudfront";
-import { fromIni } from "@aws-sdk/credential-providers";
 
 type params = {
-  profileName: string,
+  client: CloudFrontClient,
   responseType?: "custom" | "managed"
 }
 
 /**
  * Obtiene las políticas de caché de CloudFront.
- * @param profileName Nombre del profile configurado en ~/.aws/config
+ * @param client Nombre del profile configurado en ~/.aws/config
  * @param responseType Tipo de políticas a listar (default custom)
  * @returns Lista de políticas de caché
  */
 export const getCachePolicies = async ({
-  profileName,
+  client,
   responseType = "custom",
-}: params): Promise<ListCachePoliciesCommandOutput> => {
-  const client = new CloudFrontClient({
-    region: "us-east-1",
-    credentials: fromIni({ profile: profileName }),
-  });
-
+}: params) => {
   try {
     const command = new ListCachePoliciesCommand({ Type: responseType });
     const response = await client.send(command);
@@ -41,7 +32,7 @@ export const getCachePolicies = async ({
       throw new Error("No cache policies found.");
     }
 
-    return response;
+    return response.CachePolicyList;
   } catch (error) {
     console.error("Error listing cache policies:", error);
     throw error;
@@ -50,19 +41,14 @@ export const getCachePolicies = async ({
 
 /**
  * Obtiene las políticas de solicitud de origen de CloudFront.
- * @param profileName Nombre del profile configurado en ~/.aws/config
+ * @param client Nombre del profile configurado en ~/.aws/config
  * @param responseType Tipo de políticas a listar (default custom)
  * @returns Lista de políticas de solicitud de origen
  */
 export const getOriginRequestPolicies = async ({
-  profileName,
+  client,
   responseType = "custom",
-}: params): Promise<ListOriginRequestPoliciesCommandOutput> => {
-  const client = new CloudFrontClient({
-    region: "us-east-1",
-    credentials: fromIni({ profile: profileName }),
-  });
-
+}: params) => {
   try {
     const command = new ListOriginRequestPoliciesCommand({ Type: responseType });
     const response = await client.send(command);
@@ -75,7 +61,7 @@ export const getOriginRequestPolicies = async ({
       throw new Error("No origin request policies found.");
     }
 
-    return response;
+    return response.OriginRequestPolicyList;
   } catch (error) {
     console.error("Error listing origin request policies:", error);
     throw error;
@@ -85,19 +71,14 @@ export const getOriginRequestPolicies = async ({
 
 /**
  * Obtiene las políticas de encabezados de respuesta de CloudFront.
- * @param profileName Nombre del profile configurado en ~/.aws/config
+ * @param client Nombre del profile configurado en ~/.aws/config
  * @param responseType Tipo de políticas a listar (default custom)
  * @returns Lista de políticas de encabezados de respuesta
  */
 export const getResponseHeadersPolicies = async ({
-  profileName,
+  client,
   responseType = "custom",
-}: params): Promise<ListResponseHeadersPoliciesCommandOutput> => {
-  const client = new CloudFrontClient({
-    region: "us-east-1",
-    credentials: fromIni({ profile: profileName }),
-  });
-
+}: params) => {
   try {
     const command = new ListResponseHeadersPoliciesCommand({ Type: responseType });
     const response = await client.send(command);
@@ -110,7 +91,7 @@ export const getResponseHeadersPolicies = async ({
       throw new Error("No response headers policies found.");
     }
 
-    return response;
+    return response.ResponseHeadersPolicyList;
   } catch (error) {
     console.error("Error listing response headers policies:", error);
     throw error;
