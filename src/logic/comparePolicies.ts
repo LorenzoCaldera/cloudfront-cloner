@@ -16,25 +16,21 @@ const comparePoliciesByName = <
   getName: (policy: TSummary) => string | undefined,
   getId: (policy: TSummary) => string | undefined,
 ): string[] => {
-  const destinationNames: string[] =
-    destinationPolicies.Items
-      ?.map(getName)
-      .filter((name): name is string => !!name) || [];
-
-  const destinationSet = new Set(destinationNames);
-
-  const missing: TSummary[] =
-    originPolicies.Items?.filter(policy => {
+  const destinationNames = new Set(destinationPolicies.Items?.map((item) => {
+    const name = getName(item);
+    if (!name) throw new Error('Cannot compare policies: one or more policies have an undefined name.');
+    return name
+  }));
+  const missingIDs = originPolicies.Items
+    ?.filter(policy => {
       const name = getName(policy);
-      return !!name && !destinationSet.has(name);
-    }) || [];
-
-  const missingIds: string[] = missing
+      return name && !destinationNames.has(name);
+    })
     .map(getId)
-    .filter((id): id is string => !!id);
+    .filter((id): id is string => !!id) || [];
 
-  return missingIds;
-}
+  return missingIDs;
+};
 
 export const compareCachePoliciesByName = (
   originPolicies: CachePolicyList,
