@@ -3,12 +3,15 @@ import {
   ListCachePoliciesCommand,
   ListOriginRequestPoliciesCommand,
   ListResponseHeadersPoliciesCommand,
+  CachePolicyList,
+  OriginRequestPolicyList,
+  ResponseHeadersPolicyList,
 } from "@aws-sdk/client-cloudfront";
 
-type params = {
-  client: CloudFrontClient,
-  responseType?: "custom" | "managed"
-}
+type Params = {
+  client: CloudFrontClient;
+  responseType?: "custom" | "managed";
+};
 
 /**
  * Obtiene las políticas de caché de CloudFront.
@@ -18,26 +21,23 @@ type params = {
  */
 export const getCachePolicies = async ({
   client,
-  responseType = "custom",
-}: params) => {
+  responseType = "custom"
+}: Params): Promise<CachePolicyList> => {
   try {
     const command = new ListCachePoliciesCommand({ Type: responseType });
     const response = await client.send(command);
 
-    if (response.CachePolicyList?.NextMarker) {
-      throw new Error("Pagination not implemented yet.");
-    }
+    const list = response.CachePolicyList;
+    if (!list) throw new Error("Unexpected response structure.");
+    if (list.NextMarker) throw new Error("Pagination not implemented yet.");
+    if (!list.Items) throw new Error("No cache policies found.");
 
-    if (!response.CachePolicyList || !response.CachePolicyList.Items) {
-      throw new Error("No cache policies found.");
-    }
-
-    return response.CachePolicyList;
+    return list;
   } catch (error) {
     console.error("Error listing cache policies:", error);
     throw error;
   }
-}
+};
 
 /**
  * Obtiene las políticas de solicitud de origen de CloudFront.
@@ -47,26 +47,23 @@ export const getCachePolicies = async ({
  */
 export const getOriginRequestPolicies = async ({
   client,
-  responseType = "custom",
-}: params) => {
+  responseType = "custom"
+}: Params): Promise<OriginRequestPolicyList> => {
   try {
     const command = new ListOriginRequestPoliciesCommand({ Type: responseType });
     const response = await client.send(command);
 
-    if (response.OriginRequestPolicyList?.NextMarker) {
-      throw new Error("Pagination not implemented yet.");
-    }
+    const list = response.OriginRequestPolicyList;
+    if (!list) throw new Error("Unexpected response structure.");
+    if (list.NextMarker) throw new Error("Pagination not implemented yet.");
+    if (!list.Items) throw new Error("No origin request policies found.");
 
-    if (!response.OriginRequestPolicyList || !response.OriginRequestPolicyList.Items) {
-      throw new Error("No origin request policies found.");
-    }
-
-    return response.OriginRequestPolicyList;
+    return list;
   } catch (error) {
     console.error("Error listing origin request policies:", error);
     throw error;
   }
-}
+};
 
 
 /**
@@ -77,23 +74,20 @@ export const getOriginRequestPolicies = async ({
  */
 export const getResponseHeadersPolicies = async ({
   client,
-  responseType = "custom",
-}: params) => {
+  responseType = "custom"
+}: Params): Promise<ResponseHeadersPolicyList> => {
   try {
     const command = new ListResponseHeadersPoliciesCommand({ Type: responseType });
     const response = await client.send(command);
 
-    if (response.ResponseHeadersPolicyList?.NextMarker) {
-      throw new Error("Pagination not implemented yet.");
-    }
+    const list = response.ResponseHeadersPolicyList;
+    if (!list) throw new Error("Unexpected response structure.");
+    if (list.NextMarker) throw new Error("Pagination not implemented yet.");
+    if (!list.Items) throw new Error("No response headers policies found.");
 
-    if (!response.ResponseHeadersPolicyList || !response.ResponseHeadersPolicyList.Items) {
-      throw new Error("No response headers policies found.");
-    }
-
-    return response.ResponseHeadersPolicyList;
+    return list;
   } catch (error) {
     console.error("Error listing response headers policies:", error);
     throw error;
   }
-}
+};
