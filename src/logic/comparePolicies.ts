@@ -7,74 +7,64 @@ import {
   ResponseHeadersPolicySummary,
 } from "@aws-sdk/client-cloudfront";
 
-export const compareCachePoliciesByName = (
-  originPolicies: CachePolicyList,
-  destinationPolicies: CachePolicyList,
+const comparePoliciesByName = <
+  TSummary,
+  TList extends { Items?: TSummary[] }
+>(
+  originPolicies: TList,
+  destinationPolicies: TList,
+  getName: (policy: TSummary) => string | undefined,
+  getId: (policy: TSummary) => string | undefined,
 ): string[] => {
-  // Solo incluimos nombres válidos
-  const destinationNames: string[] = destinationPolicies.Items
-    ?.map(item => item.CachePolicy?.CachePolicyConfig?.Name)
-    .filter((name): name is string => !!name) || [];
+  const destinationNames: string[] =
+    destinationPolicies.Items
+      ?.map(getName)
+      .filter((name): name is string => !!name) || [];
 
   const destinationSet = new Set(destinationNames);
-  const missing: CachePolicySummary[] = originPolicies.Items
-    ?.filter(policy => {
-      const name = policy.CachePolicy?.CachePolicyConfig?.Name;
-      return typeof name === 'string' && !destinationSet.has(name);
+
+  const missing: TSummary[] =
+    originPolicies.Items?.filter(policy => {
+      const name = getName(policy);
+      return !!name && !destinationSet.has(name);
     }) || [];
 
-  // Devuelve los IDs, filtrando los falsy
   const missingIds: string[] = missing
-    .map(policy => policy.CachePolicy?.Id)
+    .map(getId)
     .filter((id): id is string => !!id);
 
   return missingIds;
-};
+}
+
+export const compareCachePoliciesByName = (
+  originPolicies: CachePolicyList,
+  destinationPolicies: CachePolicyList,
+): string[] =>
+  comparePoliciesByName(
+    originPolicies,
+    destinationPolicies,
+    (policy: CachePolicySummary) => policy.CachePolicy?.CachePolicyConfig?.Name,
+    (policy: CachePolicySummary) => policy.CachePolicy?.Id,
+  );
 
 export const compareResponseHeadersPoliciesByName = (
   originPolicies: ResponseHeadersPolicyList,
   destinationPolicies: ResponseHeadersPolicyList,
-): string[] => {
-  // Solo incluimos nombres válidos
-  const destinationNames: string[] = destinationPolicies.Items
-    ?.map(item => item.ResponseHeadersPolicy?.ResponseHeadersPolicyConfig?.Name)
-    .filter((name): name is string => !!name) || [];
-
-  const destinationSet = new Set(destinationNames);
-  const missing: ResponseHeadersPolicySummary[] = originPolicies.Items
-    ?.filter(policy => {
-      const name = policy.ResponseHeadersPolicy?.ResponseHeadersPolicyConfig?.Name;
-      return typeof name === 'string' && !destinationSet.has(name);
-    }) || [];
-
-  // Devuelve los IDs, filtrando los falsy
-  const missingIds: string[] = missing
-    .map(policy => policy.ResponseHeadersPolicy?.Id)
-    .filter((id): id is string => !!id);
-
-  return missingIds;
-};
+): string[] =>
+  comparePoliciesByName(
+    originPolicies,
+    destinationPolicies,
+    (policy: ResponseHeadersPolicySummary) => policy.ResponseHeadersPolicy?.ResponseHeadersPolicyConfig?.Name,
+    (policy: ResponseHeadersPolicySummary) => policy.ResponseHeadersPolicy?.Id,
+  );
 
 export const compareOriginRequestPoliciesByName = (
   originPolicies: OriginRequestPolicyList,
   destinationPolicies: OriginRequestPolicyList,
-): string[] => {
-  // Solo incluimos nombres válidos
-  const destinationNames: string[] = destinationPolicies.Items
-    ?.map(item => item.OriginRequestPolicy?.OriginRequestPolicyConfig?.Name)
-    .filter((name): name is string => !!name) || [];
-
-  const destinationSet = new Set(destinationNames);
-  const missing: OriginRequestPolicySummary[] = originPolicies.Items
-    ?.filter(policy => {
-      const name = policy.OriginRequestPolicy?.OriginRequestPolicyConfig?.Name;
-      return typeof name === 'string' && !destinationSet.has(name);
-    }) || [];
-
-  // Devuelve los IDs, filtrando los falsy
-  const missingIds: string[] = missing
-    .map(policy => policy.OriginRequestPolicy?.Id)
-    .filter((id): id is string => !!id);
-
-  return missingIds;
-};
+): string[] =>
+  comparePoliciesByName(
+    originPolicies,
+    destinationPolicies,
+    (policy: OriginRequestPolicySummary) => policy.OriginRequestPolicy?.OriginRequestPolicyConfig?.Name,
+    (policy: OriginRequestPolicySummary) => policy.OriginRequestPolicy?.Id,
+  );
