@@ -7,6 +7,14 @@ import {
   ResponseHeadersPolicySummary,
 } from "@aws-sdk/client-cloudfront";
 
+/**
+ * Compara las políticas de la cuenta origen y destino por nombre.
+ * @param originPolicies Lista de políticas de la cuenta origen.
+ * @param destinationPolicies Lista de políticas de la cuenta destino.
+ * @param getName Función para obtener el nombre de la política.
+ * @param getId Función para obtener el ID de la política.
+ * @returns Lista de IDs de políticas que faltan en el destino.
+ */
 const comparePoliciesByName = <
   TSummary,
   TList extends { Items?: TSummary[] }
@@ -32,6 +40,12 @@ const comparePoliciesByName = <
   return missingIDs;
 };
 
+/**
+ * Compara las políticas de caché de la cuenta origen y destino por nombre.
+ * @param originPolicies Lista de políticas de caché de la cuenta origen.
+ * @param destinationPolicies Lista de políticas de caché de la cuenta destino.
+ * @returns Lista de IDs de políticas que faltan en el destino.
+ */
 export const compareCachePoliciesByName = (
   originPolicies: CachePolicyList,
   destinationPolicies: CachePolicyList,
@@ -43,6 +57,12 @@ export const compareCachePoliciesByName = (
     (policy: CachePolicySummary) => policy.CachePolicy?.Id,
   );
 
+/**
+ * Compara las políticas de response headers de la cuenta origen y destino por nombre.
+ * @param originPolicies Lista de políticas de response headers de la cuenta origen.
+ * @param destinationPolicies Lista de políticas de response headers de la cuenta destino.
+ * @returns Lista de IDs de políticas que faltan en el destino.
+ */
 export const compareResponseHeadersPoliciesByName = (
   originPolicies: ResponseHeadersPolicyList,
   destinationPolicies: ResponseHeadersPolicyList,
@@ -54,6 +74,12 @@ export const compareResponseHeadersPoliciesByName = (
     (policy: ResponseHeadersPolicySummary) => policy.ResponseHeadersPolicy?.Id,
   );
 
+/**
+ * Compara las políticas de solicitud de origen de la cuenta origen y destino por nombre.
+ * @param originPolicies Lista de políticas de solicitud de origen de la cuenta origen.
+ * @param destinationPolicies Lista de políticas de solicitud de origen de la cuenta destino.
+ * @returns Lista de IDs de políticas que faltan en el destino.
+ */
 export const compareOriginRequestPoliciesByName = (
   originPolicies: OriginRequestPolicyList,
   destinationPolicies: OriginRequestPolicyList,
