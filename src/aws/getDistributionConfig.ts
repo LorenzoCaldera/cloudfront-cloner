@@ -3,24 +3,18 @@ import {
   GetDistributionConfigCommand,
   GetDistributionConfigCommandOutput
 } from "@aws-sdk/client-cloudfront";
-import { fromIni } from "@aws-sdk/credential-providers";
 
 /**
  * Obtiene la configuración de una distribución de CloudFront usando un profile de AWS SSO.
  * 
  * @param distributionId ID de la distribución de CloudFront
- * @param profileName Nombre del profile configurado en ~/.aws/config
+ * @param client Cliente de la cuenta de AWS
  * @returns Configuración de la distribución
  */
 export async function getDistributionConfig(
   distributionId: string,
-  profileName: string,
+  client: CloudFrontClient,
 ): Promise<GetDistributionConfigCommandOutput> {
-  const client = new CloudFrontClient({
-    region: "us-east-1",
-    credentials: fromIni({ profile: profileName }),
-  });
-
   try {
     const command = new GetDistributionConfigCommand({ Id: distributionId });
     const response = await client.send(command);
