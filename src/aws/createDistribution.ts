@@ -20,7 +20,7 @@ export const createDistribution = async (
     const response = await client.send(command);
 
     if (!response.Distribution) {
-      throw new Error("Error inesperado: no se devolvió la distribución creada.");
+      throw new Error("Unexpected Error: the created distribution was not returned.");
     }
 
     return response;
