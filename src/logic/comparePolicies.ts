@@ -7,6 +7,13 @@ import {
   ResponseHeadersPolicySummary,
 } from "@aws-sdk/client-cloudfront";
 
+interface ComparePoliciesParams<TSummary, TList> {
+  originPolicies: TList;
+  destinationPolicies: TList;
+  getName: (policy: TSummary) => string | undefined;
+  getId: (policy: TSummary) => string | undefined;
+}
+
 /**
  * Compara las políticas de la cuenta origen y destino por nombre.
  * @param originPolicies Lista de políticas de la cuenta origen.
@@ -18,12 +25,12 @@ import {
 const comparePoliciesByName = <
   TSummary,
   TList extends { Items?: TSummary[] }
->(
-  originPolicies: TList,
-  destinationPolicies: TList,
-  getName: (policy: TSummary) => string | undefined,
-  getId: (policy: TSummary) => string | undefined,
-): string[] => {
+>({
+  originPolicies,
+  destinationPolicies,
+  getName,
+  getId,
+}: ComparePoliciesParams<TSummary, TList>): string[] => {
   const destinationNames = new Set(destinationPolicies.Items?.map((item) => {
     const name = getName(item);
     if (!name) throw new Error('Cannot compare policies: one or more policies have an undefined name.');
@@ -50,12 +57,12 @@ export const compareCachePoliciesByName = (
   originPolicies: CachePolicyList,
   destinationPolicies: CachePolicyList,
 ): string[] =>
-  comparePoliciesByName(
+  comparePoliciesByName({
     originPolicies,
     destinationPolicies,
-    (policy: CachePolicySummary) => policy.CachePolicy?.CachePolicyConfig?.Name,
-    (policy: CachePolicySummary) => policy.CachePolicy?.Id,
-  );
+    getName: (policy: CachePolicySummary) => policy.CachePolicy?.CachePolicyConfig?.Name,
+    getId: (policy: CachePolicySummary) => policy.CachePolicy?.Id,
+  });
 
 /**
  * Compara las políticas de response headers de la cuenta origen y destino por nombre.
@@ -67,12 +74,12 @@ export const compareResponseHeadersPoliciesByName = (
   originPolicies: ResponseHeadersPolicyList,
   destinationPolicies: ResponseHeadersPolicyList,
 ): string[] =>
-  comparePoliciesByName(
+  comparePoliciesByName({
     originPolicies,
     destinationPolicies,
-    (policy: ResponseHeadersPolicySummary) => policy.ResponseHeadersPolicy?.ResponseHeadersPolicyConfig?.Name,
-    (policy: ResponseHeadersPolicySummary) => policy.ResponseHeadersPolicy?.Id,
-  );
+    getName: (policy: ResponseHeadersPolicySummary) => policy.ResponseHeadersPolicy?.ResponseHeadersPolicyConfig?.Name,
+    getId: (policy: ResponseHeadersPolicySummary) => policy.ResponseHeadersPolicy?.Id,
+  });
 
 /**
  * Compara las políticas de solicitud de origen de la cuenta origen y destino por nombre.
@@ -84,9 +91,9 @@ export const compareOriginRequestPoliciesByName = (
   originPolicies: OriginRequestPolicyList,
   destinationPolicies: OriginRequestPolicyList,
 ): string[] =>
-  comparePoliciesByName(
+  comparePoliciesByName({
     originPolicies,
     destinationPolicies,
-    (policy: OriginRequestPolicySummary) => policy.OriginRequestPolicy?.OriginRequestPolicyConfig?.Name,
-    (policy: OriginRequestPolicySummary) => policy.OriginRequestPolicy?.Id,
-  );
+    getName: (policy: OriginRequestPolicySummary) => policy.OriginRequestPolicy?.OriginRequestPolicyConfig?.Name,
+    getId: (policy: OriginRequestPolicySummary) => policy.OriginRequestPolicy?.Id,
+  });
