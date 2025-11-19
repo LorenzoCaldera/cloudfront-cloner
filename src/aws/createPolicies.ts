@@ -15,6 +15,10 @@ import {
 
 /**
  * Crea una Cache Policy en CloudFront.
+ * @param client Cliente de AWS CloudFront.
+ * @param config Configuración de la Cache Policy.
+ * @returns Resultado de la creación de la Cache Policy.
+ * @throws Error si la política no se retorna después de la creación.
  */
 export const createCachePolicy = async (
   client: CloudFrontClient,
@@ -37,6 +41,10 @@ export const createCachePolicy = async (
 
 /**
  * Crea una Origin Request Policy en CloudFront.
+ * @param client Cliente de AWS CloudFront.
+ * @param config Configuración de la Origin Request Policy.
+ * @returns Resultado de la creación de la Origin Request Policy.
+ * @throws Error si la política no se retorna después de la creación.
  */
 export const createOriginRequestPolicy = async (
   client: CloudFrontClient,
@@ -61,6 +69,10 @@ export const createOriginRequestPolicy = async (
 
 /**
  * Crea una Response Headers Policy en CloudFront.
+ * @param client Cliente de AWS CloudFront.
+ * @param config Configuración de la Response Headers Policy.
+ * @returns Resultado de la creación de la Response Headers Policy.
+ * @throws Error si la política no se retorna después de la creación.
  */
 export const createResponseHeadersPolicy = async (
   client: CloudFrontClient,
