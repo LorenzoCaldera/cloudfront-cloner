@@ -65,7 +65,6 @@ export const getOriginRequestPolicies = async ({
   }
 };
 
-
 /**
  * Obtiene las políticas de encabezados de respuesta de CloudFront.
  * @param client Nombre del profile configurado en ~/.aws/config
