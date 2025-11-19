@@ -15,7 +15,7 @@ type Params = {
 
 /**
  * Obtiene las políticas de caché de CloudFront.
- * @param client Cliente de la cuenta de AWS
+ * @param client Cliente de AWS
  * @param responseType Tipo de políticas a listar (default custom)
  * @returns Lista de políticas de caché
  */
@@ -41,7 +41,7 @@ export const getCachePolicies = async ({
 
 /**
  * Obtiene las políticas de solicitud de origen de CloudFront.
- * @param client Cliente de la cuenta de AWS
+ * @param client Cliente de AWS
  * @param responseType Tipo de políticas a listar (default custom)
  * @returns Lista de políticas de solicitud de origen
  */
@@ -67,7 +67,7 @@ export const getOriginRequestPolicies = async ({
 
 /**
  * Obtiene las políticas de encabezados de respuesta de CloudFront.
- * @param client Cliente de la cuenta de AWS
+ * @param client Cliente de AWS
  * @param responseType Tipo de políticas a listar (default custom)
  * @returns Lista de políticas de encabezados de respuesta
  */

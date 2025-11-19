@@ -8,13 +8,13 @@ import {
  * Obtiene la configuración de una distribución de CloudFront usando un profile de AWS SSO.
  * 
  * @param distributionId ID de la distribución de CloudFront
- * @param client Cliente de la cuenta de AWS
+ * @param client Cliente de AWS
  * @returns Configuración de la distribución
  */
-export async function getDistributionConfig(
+export const getDistributionConfig = async (
   distributionId: string,
   client: CloudFrontClient,
-): Promise<GetDistributionConfigCommandOutput> {
+): Promise<GetDistributionConfigCommandOutput> => {
   try {
     const command = new GetDistributionConfigCommand({ Id: distributionId });
     const response = await client.send(command);
