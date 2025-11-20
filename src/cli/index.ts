@@ -40,21 +40,26 @@ const main = async () => {
     credentials: fromIni({ profile: destinationProfileName }),
   });
 
-  const originDistributionConfig = await getDistributionConfig(
-    distributionIdToCopy,
-    originClient,
-  );
+  const [
+    originDistributionConfig,
+    originCachePolicies,
+    destinationCachePolicies,
+    originResponseHeadersPolicies,
+    destinationResponseHeadersPolicies,
+    originOriginRequestPolicies,
+    destinationOriginRequestPolicies,
+  ] = await Promise.all([
+    await getDistributionConfig(distributionIdToCopy,originClient),
+    await getCachePolicies({ client: originClient }),
+    await getCachePolicies({ client: destinationClient }),
+    await getResponseHeadersPolicies({ client: originClient }),
+    await getResponseHeadersPolicies({ client: destinationClient }),
+    await getOriginRequestPolicies({ client: originClient }),
+    await getOriginRequestPolicies({ client: destinationClient }),
+  ]);
 
-  const originCachePolicies = await getCachePolicies({ client: originClient });
-  const destinationCachePolicies = await getCachePolicies({ client: destinationClient });
   const missingCachePolicies = compareCachePoliciesByName(originCachePolicies, destinationCachePolicies);
-
-  const originResponseHeadersPolicies = await getResponseHeadersPolicies({ client: originClient });
-  const destinationResponseHeadersPolicies = await getResponseHeadersPolicies({ client: destinationClient });
   const missingResponseHeadersPolicies = compareResponseHeadersPoliciesByName(originResponseHeadersPolicies, destinationResponseHeadersPolicies);
-
-  const originOriginRequestPolicies = await getOriginRequestPolicies({ client: originClient });
-  const destinationOriginRequestPolicies = await getOriginRequestPolicies({ client: destinationClient });
   const missingOriginRequestPolicies = compareOriginRequestPoliciesByName(originOriginRequestPolicies, destinationOriginRequestPolicies);
 
   console.log("Missing Cache Policies IDs:", missingCachePolicies);
