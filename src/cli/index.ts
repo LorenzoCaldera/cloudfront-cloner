@@ -5,6 +5,7 @@ import { getDistributionConfig } from "../aws/getDistributionConfig";
 import { getCachePolicies, getOriginRequestPolicies, getResponseHeadersPolicies } from "../aws/getPolicies";
 import { compareCachePoliciesByName, compareOriginRequestPoliciesByName, compareResponseHeadersPoliciesByName } from "../logic/comparePolicies";
 import { getInUseMissingMissingPolicies } from "../logic/getInUseMissingPolicies";
+import { createCachePolicy, createOriginRequestPolicy, createResponseHeadersPolicy } from "../aws/createPolicies";
 
 const main = async () => {
   const args = process.argv.slice(2); // skip first two (node executable and script path)
@@ -83,6 +84,20 @@ const main = async () => {
     missingResponseHeadersPolicies,
     missingOriginRequestPolicies,
   })
+
+  const idsToReplace = new Map<string, string>();
+  for (const policie of inUseMissingCachePolicies) {
+    const createPolicyResult = await createCachePolicy(destinationClient, policie.CachePolicy.CachePolicyConfig);
+    idsToReplace.set(policie.CachePolicy.Id, createPolicyResult.CachePolicy.Id);
+  }
+  for (const policie of inUseMissingResponseHeadersPolicies) {
+    const createPolicyResult = await createResponseHeadersPolicy(destinationClient, policie.ResponseHeadersPolicy.ResponseHeadersPolicyConfig);
+    idsToReplace.set(policie.ResponseHeadersPolicy.Id, createPolicyResult.ResponseHeadersPolicy.Id);
+  }
+  for (const policie of inUseMissingOriginRequestPolicies) {
+    const createPolicyResult = await createOriginRequestPolicy(destinationClient, policie.OriginRequestPolicy.OriginRequestPolicyConfig);
+    idsToReplace.set(policie.OriginRequestPolicy.Id, createPolicyResult.OriginRequestPolicy.Id);
+  }
 };
 
 main().catch((error) => {
