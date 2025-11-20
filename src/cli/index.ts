@@ -1,5 +1,5 @@
 import { CloudFrontClient } from "@aws-sdk/client-cloudfront";
-import { parseArgs } from "../helpers/parseArgs";
+import { parseArgs } from "../logic/parseArgs";
 import { fromIni } from "@aws-sdk/credential-providers";
 import { getDistributionConfig } from "../aws/getDistributionConfig";
 import { getCachePolicies, getOriginRequestPolicies, getResponseHeadersPolicies } from "../aws/getPolicies";
