@@ -30,7 +30,7 @@ export const getCachePolicies = async ({
     const list = response.CachePolicyList;
     if (!list) throw new Error("Unexpected response structure.");
     if (list.NextMarker) throw new Error("Pagination not implemented yet.");
-    if (!list.Items) throw new Error("No cache policies found.");
+    if (list.Quantity === 0 || !list.Items.length) console.warn("No cache policies found.");
 
     return list;
   } catch (error) {
@@ -56,7 +56,7 @@ export const getOriginRequestPolicies = async ({
     const list = response.OriginRequestPolicyList;
     if (!list) throw new Error("Unexpected response structure.");
     if (list.NextMarker) throw new Error("Pagination not implemented yet.");
-    if (!list.Items) throw new Error("No origin request policies found.");
+    if (list.Quantity === 0 || !list.Items.length) console.warn("No origin request policies found.");
 
     return list;
   } catch (error) {
@@ -82,7 +82,7 @@ export const getResponseHeadersPolicies = async ({
     const list = response.ResponseHeadersPolicyList;
     if (!list) throw new Error("Unexpected response structure.");
     if (list.NextMarker) throw new Error("Pagination not implemented yet.");
-    if (!list.Items) throw new Error("No response headers policies found.");
+    if (list.Quantity === 0 || !list.Items.length) console.warn("No response headers policies found.");
 
     return list;
   } catch (error) {
