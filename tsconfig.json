@@ -1,35 +1,11 @@
 {
   "compilerOptions": {
-    /* Output */
-    "target": "ES2022",
-    "module": "ESNext",
     "outDir": "./dist",
-    "rootDir": "./src",
-    /* Strictness */
-    "strict": true,
-    "erasableSyntaxOnly": true,
-    "noUncheckedSideEffectImports": true,
+    "module": "commonjs",
     "noImplicitAny": true,
-    "strictNullChecks": true,
-    "strictFunctionTypes": true,
-    "strictBindCallApply": true,
-    "alwaysStrict": true,
-    /* Module resolution */
-    "moduleResolution": "node",
-    "esModuleInterop": true,
     "removeComments": true,
-    "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true,
-    "allowSyntheticDefaultImports": true,
-    /* Source maps & debugging */
-    "sourceMap": true,
-    "inlineSources": true,
-    /* Modern TS goodies */
-    "skipLibCheck": true,
-    "isolatedModules": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true
+    "preserveConstEnums": true,
+    "sourceMap": true
   },
   "include": [
     "src/**/*"
