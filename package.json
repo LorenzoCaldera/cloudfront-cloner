@@ -1,10 +1,17 @@
 {
-  "type": "module",
+  "type": "commonjs",
   "dependencies": {
     "@aws-sdk/client-cloudfront": "^3.883.0",
     "@aws-sdk/credential-providers": "^3.883.0"
   },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "node --enable-source-maps dist/cli/index.js",
+    "dev": "ts-node --esm src/cli/index.ts",
+    "dev:watch": "ts-node-dev --respawn --transpile-only src/cli/index.ts"
+  },
   "devDependencies": {
-    "@types/node": "^24.10.1"
+    "@types/node": "^24.10.1",
+    "typescript": "^5.9.3"
   }
 }
