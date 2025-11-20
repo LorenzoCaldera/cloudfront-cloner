@@ -32,6 +32,16 @@ const main = async () => {
     process.exit(1);
   }
 
+  if (typeof copyRefererName !== "string") {
+    console.error("Error: --copyRefererName must be a string.");
+    process.exit(1);
+  }
+
+  if (typeof copyComment !== "string") {
+    console.error("Error: --copyComment must be a string.");
+    process.exit(1);
+  }
+
   const originClient = new CloudFrontClient({
     region: "us-east-1",
     credentials: fromIni({ profile: originProfileName }),
