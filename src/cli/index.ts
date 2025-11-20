@@ -4,6 +4,7 @@ import { fromIni } from "@aws-sdk/credential-providers";
 import { getDistributionConfig } from "../aws/getDistributionConfig";
 import { getCachePolicies, getOriginRequestPolicies, getResponseHeadersPolicies } from "../aws/getPolicies";
 import { compareCachePoliciesByName, compareOriginRequestPoliciesByName, compareResponseHeadersPoliciesByName } from "../logic/comparePolicies";
+import { getInUseMissingMissingPolicies } from "../logic/getInUseMissingPolicies";
 
 const main = async () => {
   const args = process.argv.slice(2); // skip first two (node executable and script path)
@@ -49,7 +50,7 @@ const main = async () => {
     originOriginRequestPolicies,
     destinationOriginRequestPolicies,
   ] = await Promise.all([
-    await getDistributionConfig(distributionIdToCopy,originClient),
+    await getDistributionConfig(distributionIdToCopy, originClient),
     await getCachePolicies({ client: originClient }),
     await getCachePolicies({ client: destinationClient }),
     await getResponseHeadersPolicies({ client: originClient }),
@@ -62,9 +63,16 @@ const main = async () => {
   const missingResponseHeadersPolicies = compareResponseHeadersPoliciesByName(originResponseHeadersPolicies, destinationResponseHeadersPolicies);
   const missingOriginRequestPolicies = compareOriginRequestPoliciesByName(originOriginRequestPolicies, destinationOriginRequestPolicies);
 
-  console.log("Missing Cache Policies IDs:", missingCachePolicies);
-  console.log("Missing Response Headers Policies IDs:", missingResponseHeadersPolicies);
-  console.log("Missing Origin Request Policies IDs:", missingOriginRequestPolicies);
+  const {
+    inUseMissingCachePolicies,
+    inUseMissingResponseHeadersPolicies,
+    inUseMissingOriginRequestPolicies
+  } = getInUseMissingMissingPolicies({
+    distributionConfig: originDistributionConfig.DistributionConfig,
+    missingCachePolicies,
+    missingResponseHeadersPolicies,
+    missingOriginRequestPolicies,
+  })
 };
 
 main().catch((error) => {
