@@ -107,6 +107,45 @@ const main = async () => {
   newDistributionConfig.Aliases.Quantity = 0;
   delete newDistributionConfig.Aliases.Items;
   newDistributionConfig.ViewerCertificate = { CloudFrontDefaultCertificate: true };
+
+  const {
+    CachePolicyId,
+    ResponseHeadersPolicyId,
+    OriginRequestPolicyId,
+  } = newDistributionConfig.DefaultCacheBehavior;
+
+  const defaultCachePolicyId = idsToReplace.get(CachePolicyId);
+  if (defaultCachePolicyId) {
+    newDistributionConfig.DefaultCacheBehavior.CachePolicyId = defaultCachePolicyId;
+  }
+  const defaultResponseHeadersPolicyId = idsToReplace.get(ResponseHeadersPolicyId);
+  if (defaultResponseHeadersPolicyId) {
+    newDistributionConfig.DefaultCacheBehavior.ResponseHeadersPolicyId = defaultResponseHeadersPolicyId;
+  }
+  const defaultOriginRequestPolicyId = idsToReplace.get(OriginRequestPolicyId);
+  if (defaultOriginRequestPolicyId) {
+    newDistributionConfig.DefaultCacheBehavior.OriginRequestPolicyId = defaultOriginRequestPolicyId;
+  }
+
+  for (const item of newDistributionConfig.CacheBehaviors.Items) {
+    const {
+      CachePolicyId,
+      ResponseHeadersPolicyId,
+      OriginRequestPolicyId,
+    } = item;
+    const defaultCachePolicyId = idsToReplace.get(CachePolicyId);
+    if (defaultCachePolicyId) {
+      item.CachePolicyId = defaultCachePolicyId;
+    }
+    const defaultResponseHeadersPolicyId = idsToReplace.get(ResponseHeadersPolicyId);
+    if (defaultResponseHeadersPolicyId) {
+      item.ResponseHeadersPolicyId = defaultResponseHeadersPolicyId;
+    }
+    const defaultOriginRequestPolicyId = idsToReplace.get(OriginRequestPolicyId);
+    if (defaultOriginRequestPolicyId) {
+      item.OriginRequestPolicyId = defaultOriginRequestPolicyId;
+    }
+  }
 };
 
 main().catch((error) => {
