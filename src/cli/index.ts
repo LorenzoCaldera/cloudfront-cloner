@@ -86,18 +86,32 @@ const main = async () => {
   })
 
   const idsToReplace = new Map<string, string>();
+  const createAllPolicies: Promise<void>[] = [];
   for (const policie of inUseMissingCachePolicies) {
-    const createPolicyResult = await createCachePolicy(destinationClient, policie.CachePolicy.CachePolicyConfig);
-    idsToReplace.set(policie.CachePolicy.Id, createPolicyResult.CachePolicy.Id);
+    createAllPolicies.push(
+      (async () => {
+        const createPolicyResult = await createCachePolicy(destinationClient, policie.CachePolicy.CachePolicyConfig);
+        idsToReplace.set(policie.CachePolicy.Id, createPolicyResult.CachePolicy.Id);
+      })()
+    );
   }
   for (const policie of inUseMissingResponseHeadersPolicies) {
-    const createPolicyResult = await createResponseHeadersPolicy(destinationClient, policie.ResponseHeadersPolicy.ResponseHeadersPolicyConfig);
-    idsToReplace.set(policie.ResponseHeadersPolicy.Id, createPolicyResult.ResponseHeadersPolicy.Id);
+    createAllPolicies.push(
+      (async () => {
+        const createPolicyResult = await createResponseHeadersPolicy(destinationClient, policie.ResponseHeadersPolicy.ResponseHeadersPolicyConfig);
+        idsToReplace.set(policie.ResponseHeadersPolicy.Id, createPolicyResult.ResponseHeadersPolicy.Id);
+      })()
+    );
   }
   for (const policie of inUseMissingOriginRequestPolicies) {
-    const createPolicyResult = await createOriginRequestPolicy(destinationClient, policie.OriginRequestPolicy.OriginRequestPolicyConfig);
-    idsToReplace.set(policie.OriginRequestPolicy.Id, createPolicyResult.OriginRequestPolicy.Id);
+    createAllPolicies.push(
+      (async () => {
+        const createPolicyResult = await createOriginRequestPolicy(destinationClient, policie.OriginRequestPolicy.OriginRequestPolicyConfig);
+        idsToReplace.set(policie.OriginRequestPolicy.Id, createPolicyResult.OriginRequestPolicy.Id);
+      })()
+    );
   }
+  await Promise.all(createAllPolicies);
 
   const newDistributionConfig = { ...originDistributionConfig.DistributionConfig }
   const newRefererName = copyRefererName ?? `copyOf_${distributionIdToCopy}`;
