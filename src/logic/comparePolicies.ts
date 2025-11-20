@@ -11,7 +11,6 @@ interface ComparePoliciesParams<TSummary, TList> {
   originPolicies: TList;
   destinationPolicies: TList;
   getName: (policy: TSummary) => string | undefined;
-  getId: (policy: TSummary) => string | undefined;
 }
 
 /**
@@ -28,23 +27,19 @@ const comparePoliciesByName = <
 >({
   originPolicies,
   destinationPolicies,
-  getName,
-  getId,
-}: ComparePoliciesParams<TSummary, TList>): string[] => {
+  getName
+}: ComparePoliciesParams<TSummary, TList>): TSummary[] => {
   const destinationNames = new Set(destinationPolicies.Items?.map((item) => {
     const name = getName(item);
     if (!name) throw new Error('Cannot compare policies: one or more policies have an undefined name.');
-    return name
+    return name;
   }));
-  const missingIDs = originPolicies.Items
+
+  return originPolicies.Items
     ?.filter(policy => {
       const name = getName(policy);
       return name && !destinationNames.has(name);
-    })
-    .map(getId)
-    .filter((id): id is string => !!id) || [];
-
-  return missingIDs;
+    });
 };
 
 /**
@@ -56,12 +51,11 @@ const comparePoliciesByName = <
 export const compareCachePoliciesByName = (
   originPolicies: CachePolicyList,
   destinationPolicies: CachePolicyList,
-): string[] =>
+): CachePolicySummary[] =>
   comparePoliciesByName({
     originPolicies,
     destinationPolicies,
     getName: (policy: CachePolicySummary) => policy.CachePolicy?.CachePolicyConfig?.Name,
-    getId: (policy: CachePolicySummary) => policy.CachePolicy?.Id,
   });
 
 /**
@@ -73,12 +67,11 @@ export const compareCachePoliciesByName = (
 export const compareResponseHeadersPoliciesByName = (
   originPolicies: ResponseHeadersPolicyList,
   destinationPolicies: ResponseHeadersPolicyList,
-): string[] =>
+): ResponseHeadersPolicySummary[] =>
   comparePoliciesByName({
     originPolicies,
     destinationPolicies,
     getName: (policy: ResponseHeadersPolicySummary) => policy.ResponseHeadersPolicy?.ResponseHeadersPolicyConfig?.Name,
-    getId: (policy: ResponseHeadersPolicySummary) => policy.ResponseHeadersPolicy?.Id,
   });
 
 /**
@@ -90,10 +83,9 @@ export const compareResponseHeadersPoliciesByName = (
 export const compareOriginRequestPoliciesByName = (
   originPolicies: OriginRequestPolicyList,
   destinationPolicies: OriginRequestPolicyList,
-): string[] =>
+): OriginRequestPolicySummary[] =>
   comparePoliciesByName({
     originPolicies,
     destinationPolicies,
     getName: (policy: OriginRequestPolicySummary) => policy.OriginRequestPolicy?.OriginRequestPolicyConfig?.Name,
-    getId: (policy: OriginRequestPolicySummary) => policy.OriginRequestPolicy?.Id,
   });

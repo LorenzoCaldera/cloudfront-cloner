@@ -1,10 +1,10 @@
-import { DistributionConfig } from "@aws-sdk/client-cloudfront"
+import { CachePolicySummary, DistributionConfig, OriginRequestPolicySummary, ResponseHeadersPolicySummary } from "@aws-sdk/client-cloudfront"
 
 type getInUseMissingMissingPolicies = {
   distributionConfig: DistributionConfig,
-  missingCachePolicies: string[],
-  missingResponseHeadersPolicies: string[],
-  missingOriginRequestPolicies: string[],
+  missingCachePolicies: CachePolicySummary[],
+  missingResponseHeadersPolicies: ResponseHeadersPolicySummary[],
+  missingOriginRequestPolicies: OriginRequestPolicySummary[],
 }
 
 export const getInUseMissingMissingPolicies = ({
@@ -13,6 +13,16 @@ export const getInUseMissingMissingPolicies = ({
   missingResponseHeadersPolicies,
   missingOriginRequestPolicies,
 }: getInUseMissingMissingPolicies) => {
+  const missingCachePoliciesMap = new Map(
+    missingCachePolicies.map(p => [p.CachePolicy?.Id, p])
+  );
+  const missingResponseHeadersPoliciesMap = new Map(
+    missingResponseHeadersPolicies.map(p => [p.ResponseHeadersPolicy?.Id, p])
+  );
+  const missingOriginRequestPoliciesMap = new Map(
+    missingOriginRequestPolicies.map(p => [p.OriginRequestPolicy?.Id, p])
+  );
+
   const inUseMissingCachePolicies = new Set();
   const inUseMissingResponseHeadersPolicies = new Set();
   const inUseMissingOriginRequestPolicies = new Set();
@@ -23,16 +33,27 @@ export const getInUseMissingMissingPolicies = ({
     ResponseHeadersPolicyId,
     OriginRequestPolicyId
   } = DefaultCacheBehavior;
-  if (missingCachePolicies.includes(CachePolicyId)) inUseMissingCachePolicies.add(CachePolicyId);
-  if (missingResponseHeadersPolicies.includes(ResponseHeadersPolicyId)) inUseMissingResponseHeadersPolicies.add(ResponseHeadersPolicyId);
-  if (missingOriginRequestPolicies.includes(OriginRequestPolicyId)) inUseMissingOriginRequestPolicies.add(OriginRequestPolicyId);
+
+  const cachePolicy = missingCachePoliciesMap.get(CachePolicyId);
+  if (cachePolicy) inUseMissingCachePolicies.add(cachePolicy);
+
+  const responseHeadersPolicy = missingResponseHeadersPoliciesMap.get(ResponseHeadersPolicyId);
+  if (responseHeadersPolicy) inUseMissingResponseHeadersPolicies.add(responseHeadersPolicy);
+
+  const originRequestPolicy = missingOriginRequestPoliciesMap.get(OriginRequestPolicyId);
+  if (originRequestPolicy) inUseMissingOriginRequestPolicies.add(originRequestPolicy);
 
   for (const behavior of distributionConfig.CacheBehaviors.Items) {
     const { CachePolicyId, ResponseHeadersPolicyId, OriginRequestPolicyId } = behavior;
 
-    if (missingCachePolicies.includes(CachePolicyId)) inUseMissingCachePolicies.add(CachePolicyId);
-    if (missingResponseHeadersPolicies.includes(ResponseHeadersPolicyId)) inUseMissingResponseHeadersPolicies.add(ResponseHeadersPolicyId);
-    if (missingOriginRequestPolicies.includes(OriginRequestPolicyId)) inUseMissingOriginRequestPolicies.add(OriginRequestPolicyId);
+    const cachePolicy = missingCachePoliciesMap.get(CachePolicyId);
+    if (cachePolicy) inUseMissingCachePolicies.add(cachePolicy);
+
+    const responseHeadersPolicy = missingResponseHeadersPoliciesMap.get(ResponseHeadersPolicyId);
+    if (responseHeadersPolicy) inUseMissingResponseHeadersPolicies.add(responseHeadersPolicy);
+
+    const originRequestPolicy = missingOriginRequestPoliciesMap.get(OriginRequestPolicyId);
+    if (originRequestPolicy) inUseMissingOriginRequestPolicies.add(originRequestPolicy);
   }
 
   return {
