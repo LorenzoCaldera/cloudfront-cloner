@@ -33,12 +33,12 @@ const main = async () => {
     process.exit(1);
   }
 
-  if (typeof copyRefererName !== "string") {
+  if (copyRefererName !== undefined && typeof copyRefererName !== "string" || typeof copyComment === "boolean") {
     console.error("Error: --copyRefererName must be a string.");
     process.exit(1);
   }
 
-  if (typeof copyComment !== "string") {
+  if (copyComment !== undefined && typeof copyComment !== "string" || typeof copyComment === "boolean") {
     console.error("Error: --copyComment must be a string.");
     process.exit(1);
   }
@@ -90,6 +90,7 @@ const main = async () => {
   for (const policie of inUseMissingCachePolicies) {
     createAllPolicies.push(
       (async () => {
+        console.log("The cache policy:" + policie.CachePolicy.CachePolicyConfig.Name + " it's gonna be created")
         const createPolicyResult = await createCachePolicy(destinationClient, policie.CachePolicy.CachePolicyConfig);
         idsToReplace.set(policie.CachePolicy.Id, createPolicyResult.CachePolicy.Id);
       })()
@@ -98,6 +99,7 @@ const main = async () => {
   for (const policie of inUseMissingResponseHeadersPolicies) {
     createAllPolicies.push(
       (async () => {
+        console.log("The response header policy: " + policie.ResponseHeadersPolicy.ResponseHeadersPolicyConfig.Name + " it's gonna be created")
         const createPolicyResult = await createResponseHeadersPolicy(destinationClient, policie.ResponseHeadersPolicy.ResponseHeadersPolicyConfig);
         idsToReplace.set(policie.ResponseHeadersPolicy.Id, createPolicyResult.ResponseHeadersPolicy.Id);
       })()
@@ -106,6 +108,7 @@ const main = async () => {
   for (const policie of inUseMissingOriginRequestPolicies) {
     createAllPolicies.push(
       (async () => {
+        console.log("The origin request policy:" + policie.OriginRequestPolicy.OriginRequestPolicyConfig.Name + " it's gonna be created")
         const createPolicyResult = await createOriginRequestPolicy(destinationClient, policie.OriginRequestPolicy.OriginRequestPolicyConfig);
         idsToReplace.set(policie.OriginRequestPolicy.Id, createPolicyResult.OriginRequestPolicy.Id);
       })()
