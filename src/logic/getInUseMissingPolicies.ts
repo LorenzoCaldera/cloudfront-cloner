@@ -23,9 +23,9 @@ export const getInUseMissingMissingPolicies = ({
     missingOriginRequestPolicies.map(p => [p.OriginRequestPolicy?.Id, p])
   );
 
-  const inUseMissingCachePolicies = new Set();
-  const inUseMissingResponseHeadersPolicies = new Set();
-  const inUseMissingOriginRequestPolicies = new Set();
+  const inUseMissingCachePolicies = new Set<CachePolicySummary>();
+  const inUseMissingResponseHeadersPolicies = new Set<ResponseHeadersPolicySummary>();
+  const inUseMissingOriginRequestPolicies = new Set<OriginRequestPolicySummary>();
 
   const DefaultCacheBehavior = distributionConfig.DefaultCacheBehavior;
   const {
