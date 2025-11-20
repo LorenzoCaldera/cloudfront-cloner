@@ -98,6 +98,15 @@ const main = async () => {
     const createPolicyResult = await createOriginRequestPolicy(destinationClient, policie.OriginRequestPolicy.OriginRequestPolicyConfig);
     idsToReplace.set(policie.OriginRequestPolicy.Id, createPolicyResult.OriginRequestPolicy.Id);
   }
+
+  const newDistributionConfig = { ...originDistributionConfig.DistributionConfig }
+  const newRefererName = copyRefererName ?? `copyOf_${distributionIdToCopy}`;
+  const newComment = copyComment ?? 'COPY: ' + newDistributionConfig.Comment;
+  newDistributionConfig.CallerReference = newRefererName + '_' + new Date().getUTCMilliseconds();
+  newDistributionConfig.Comment = newComment;
+  newDistributionConfig.Aliases.Quantity = 0;
+  delete newDistributionConfig.Aliases.Items;
+  newDistributionConfig.ViewerCertificate = { CloudFrontDefaultCertificate: true };
 };
 
 main().catch((error) => {
