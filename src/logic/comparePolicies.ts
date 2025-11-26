@@ -18,7 +18,6 @@ interface ComparePoliciesParams<TSummary, TList> {
  * @param originPolicies Lista de políticas de la cuenta origen.
  * @param destinationPolicies Lista de políticas de la cuenta destino.
  * @param getName Función para obtener el nombre de la política.
- * @param getId Función para obtener el ID de la política.
  * @returns Lista de IDs de políticas que faltan en el destino.
  */
 const comparePoliciesByName = <
