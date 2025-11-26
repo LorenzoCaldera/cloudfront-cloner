@@ -45,7 +45,7 @@ const main = async () => {
   }
 
   if ((debug !== undefined && typeof debug !== "boolean") || typeof debug === "string") {
-    console.error("Error: --debug must be a string.");
+    console.error("Error: --debug must be a boolean.");
     process.exit(1);
   }
 
