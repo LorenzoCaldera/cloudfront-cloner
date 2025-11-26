@@ -16,6 +16,7 @@ const main = async () => {
     distributionIdToCopy,
     copyRefererName,
     copyComment,
+    debug
   } = parsedArgs;
 
   if (!originProfileName || typeof originProfileName !== "string") {
@@ -33,13 +34,18 @@ const main = async () => {
     process.exit(1);
   }
 
-  if (copyRefererName !== undefined && typeof copyRefererName !== "string" || typeof copyComment === "boolean") {
+  if ((copyRefererName !== undefined && typeof copyRefererName !== "string") || typeof copyComment === "boolean") {
     console.error("Error: --copyRefererName must be a string.");
     process.exit(1);
   }
 
-  if (copyComment !== undefined && typeof copyComment !== "string" || typeof copyComment === "boolean") {
+  if ((copyComment !== undefined && typeof copyComment !== "string") || typeof copyComment === "boolean") {
     console.error("Error: --copyComment must be a string.");
+    process.exit(1);
+  }
+
+  if ((debug !== undefined && typeof debug !== "boolean") || typeof debug === "string") {
+    console.error("Error: --debug must be a string.");
     process.exit(1);
   }
 
