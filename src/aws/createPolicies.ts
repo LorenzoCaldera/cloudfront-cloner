@@ -79,8 +79,9 @@ export const createResponseHeadersPolicy = async (
   config: ResponseHeadersPolicyConfig
 ): Promise<CreateResponseHeadersPolicyResult> => {
   try {
+    const cleanConfig = sanitizeResponseHeadersPolicyConfig({ ...config });
     const command = new CreateResponseHeadersPolicyCommand({
-      ResponseHeadersPolicyConfig: config
+      ResponseHeadersPolicyConfig: cleanConfig
     });
     const response = await client.send(command);
 
@@ -94,3 +95,33 @@ export const createResponseHeadersPolicy = async (
     throw error;
   }
 };
+
+
+const sanitizeResponseHeadersPolicyConfig = (config: ResponseHeadersPolicyConfig): ResponseHeadersPolicyConfig => {
+  const sec = config.SecurityHeadersConfig;
+  if (!sec) return config;
+
+  // Si ReferrerPolicy existe pero tiene valores null es eliminado
+  if (sec.ReferrerPolicy) {
+    if (
+      sec.ReferrerPolicy.ReferrerPolicy == null ||
+      sec.ReferrerPolicy.Override == null
+    ) {
+      delete sec.ReferrerPolicy;
+    }
+  }
+
+  // Elimina cualquier otro bloque vacío o con nulls
+  for (const key of Object.keys(sec)) {
+    const value = (sec as any)[key];
+    if (
+      value &&
+      typeof value === "object" &&
+      Object.values(value).every(v => v == null)
+    ) {
+      delete (sec as any)[key];
+    }
+  }
+
+  return config;
+}
