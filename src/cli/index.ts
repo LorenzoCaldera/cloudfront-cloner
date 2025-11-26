@@ -4,7 +4,7 @@ import { fromIni } from "@aws-sdk/credential-providers";
 import { getDistributionConfig } from "../aws/getDistributionConfig";
 import { getCachePolicies, getOriginRequestPolicies, getResponseHeadersPolicies } from "../aws/getPolicies";
 import { compareCachePoliciesByName, compareOriginRequestPoliciesByName, compareResponseHeadersPoliciesByName } from "../logic/comparePolicies";
-import { getInUseMissingMissingPolicies } from "../logic/getInUseMissingPolicies";
+import { getInUseMissingPolicies } from "../logic/getInUseMissingPolicies";
 import { createCachePolicy, createOriginRequestPolicy, createResponseHeadersPolicy } from "../aws/createPolicies";
 
 const main = async () => {
@@ -84,7 +84,7 @@ const main = async () => {
     inUseMissingCachePolicies,
     inUseMissingResponseHeadersPolicies,
     inUseMissingOriginRequestPolicies
-  } = getInUseMissingMissingPolicies({
+  } = getInUseMissingPolicies({
     distributionConfig: originDistributionConfig.DistributionConfig,
     missingCachePolicies,
     missingResponseHeadersPolicies,

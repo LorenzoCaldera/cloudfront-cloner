@@ -1,18 +1,18 @@
 import { CachePolicySummary, DistributionConfig, OriginRequestPolicySummary, ResponseHeadersPolicySummary } from "@aws-sdk/client-cloudfront"
 
-type getInUseMissingMissingPolicies = {
+type getInUseMissingPolicies = {
   distributionConfig: DistributionConfig,
   missingCachePolicies: CachePolicySummary[],
   missingResponseHeadersPolicies: ResponseHeadersPolicySummary[],
   missingOriginRequestPolicies: OriginRequestPolicySummary[],
 }
 
-export const getInUseMissingMissingPolicies = ({
+export const getInUseMissingPolicies = ({
   distributionConfig,
   missingCachePolicies,
   missingResponseHeadersPolicies,
   missingOriginRequestPolicies,
-}: getInUseMissingMissingPolicies) => {
+}: getInUseMissingPolicies) => {
   const missingCachePoliciesMap = new Map(
     missingCachePolicies.map(p => [p.CachePolicy?.Id, p])
   );
@@ -44,7 +44,11 @@ export const getInUseMissingMissingPolicies = ({
   if (originRequestPolicy) inUseMissingOriginRequestPolicies.add(originRequestPolicy);
 
   for (const behavior of distributionConfig.CacheBehaviors.Items) {
-    const { CachePolicyId, ResponseHeadersPolicyId, OriginRequestPolicyId } = behavior;
+    const {
+      CachePolicyId,
+      ResponseHeadersPolicyId,
+      OriginRequestPolicyId
+    } = behavior;
 
     const cachePolicy = missingCachePoliciesMap.get(CachePolicyId);
     if (cachePolicy) inUseMissingCachePolicies.add(cachePolicy);
