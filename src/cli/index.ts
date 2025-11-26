@@ -137,17 +137,20 @@ const main = async () => {
     OriginRequestPolicyId,
   } = newDistributionConfig.DefaultCacheBehavior;
 
-  const defaultCachePolicyId = idsToReplace.get(CachePolicyId);
-  if (defaultCachePolicyId) {
-    newDistributionConfig.DefaultCacheBehavior.CachePolicyId = defaultCachePolicyId;
+  const newDefaultCachePolicyId = idsToReplace.get(CachePolicyId);
+  if (newDefaultCachePolicyId) {
+    console.log(newDefaultCachePolicyId);
+    newDistributionConfig.DefaultCacheBehavior.CachePolicyId = newDefaultCachePolicyId;
   }
-  const defaultResponseHeadersPolicyId = idsToReplace.get(ResponseHeadersPolicyId);
-  if (defaultResponseHeadersPolicyId) {
-    newDistributionConfig.DefaultCacheBehavior.ResponseHeadersPolicyId = defaultResponseHeadersPolicyId;
+  const newDefaultResponseHeadersPolicyId = idsToReplace.get(ResponseHeadersPolicyId);
+  if (newDefaultResponseHeadersPolicyId) {
+    console.log(newDefaultResponseHeadersPolicyId);
+    newDistributionConfig.DefaultCacheBehavior.ResponseHeadersPolicyId = newDefaultResponseHeadersPolicyId;
   }
-  const defaultOriginRequestPolicyId = idsToReplace.get(OriginRequestPolicyId);
-  if (defaultOriginRequestPolicyId) {
-    newDistributionConfig.DefaultCacheBehavior.OriginRequestPolicyId = defaultOriginRequestPolicyId;
+  const newDefaultOriginRequestPolicyId = idsToReplace.get(OriginRequestPolicyId);
+  if (newDefaultOriginRequestPolicyId) {
+    console.log(newDefaultOriginRequestPolicyId);
+    newDistributionConfig.DefaultCacheBehavior.OriginRequestPolicyId = newDefaultOriginRequestPolicyId;
   }
 
   for (const item of newDistributionConfig.CacheBehaviors.Items) {
@@ -156,17 +159,20 @@ const main = async () => {
       ResponseHeadersPolicyId,
       OriginRequestPolicyId,
     } = item;
-    const defaultCachePolicyId = idsToReplace.get(CachePolicyId);
-    if (defaultCachePolicyId) {
-      item.CachePolicyId = defaultCachePolicyId;
+    const newCachePolicyId = idsToReplace.get(CachePolicyId);
+    if (newCachePolicyId) {
+      console.log(newCachePolicyId);
+      item.CachePolicyId = newCachePolicyId;
     }
-    const defaultResponseHeadersPolicyId = idsToReplace.get(ResponseHeadersPolicyId);
-    if (defaultResponseHeadersPolicyId) {
-      item.ResponseHeadersPolicyId = defaultResponseHeadersPolicyId;
+    const newResponseHeadersPolicyId = idsToReplace.get(ResponseHeadersPolicyId);
+    if (newResponseHeadersPolicyId) {
+      console.log(newResponseHeadersPolicyId);
+      item.ResponseHeadersPolicyId = newResponseHeadersPolicyId;
     }
-    const defaultOriginRequestPolicyId = idsToReplace.get(OriginRequestPolicyId);
-    if (defaultOriginRequestPolicyId) {
-      item.OriginRequestPolicyId = defaultOriginRequestPolicyId;
+    const newOriginRequestPolicyId = idsToReplace.get(OriginRequestPolicyId);
+    if (newOriginRequestPolicyId) {
+      console.log(newOriginRequestPolicyId);
+      item.OriginRequestPolicyId = newOriginRequestPolicyId;
     }
   }
 };
