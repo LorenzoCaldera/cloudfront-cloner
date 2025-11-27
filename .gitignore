@@ -1,4 +1,5 @@
 # Logs
+debug-report.json
 logs
 *.log
 npm-debug.log*
