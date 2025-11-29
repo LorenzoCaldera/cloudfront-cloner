@@ -316,17 +316,6 @@ const main = async () => {
     console.log(`[DEBUG] Total policy ID mappings: ${Object.keys(debugReport.policyIdMappings).length}`);
     console.log('========================================\n');
   }
-
-  writeFileSync(
-    'originDistributionConfig.json',
-    JSON.stringify(originDistributionConfig, null, 2),
-    'utf-8'
-  );
-  writeFileSync(
-    'newDistributionConfig.json',
-    JSON.stringify(newDistributionConfig, null, 2),
-    'utf-8'
-  );
 };
 
 main().catch((error) => {
