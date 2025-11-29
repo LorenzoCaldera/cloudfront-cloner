@@ -97,6 +97,7 @@ async function replacePolicyId<
   destinationClient: CloudFrontClient,
   originPolicyCache: Map<string, TConfig>,
   destinationNameToId: Map<string, string>,
+  pendingCreations: Map<string, Promise<string>>,
 ): Promise<string> {
   // Buscar o cargar la policy config del origen
   let policyConfig = originPolicyCache.get(policyId);
@@ -108,15 +109,29 @@ async function replacePolicyId<
 
   const policyName = handler.extractName(policyConfig);
 
-  // Buscar o crear la policy en el destino
-  let destinationPolicyId = destinationNameToId.get(policyName);
-  if (!destinationPolicyId) {
-    const createResult = await handler.create(destinationClient, policyConfig);
-    destinationPolicyId = handler.extractIdFromResult(createResult);
-    destinationNameToId.set(policyName, destinationPolicyId);
+  // Si ya existe en destino, retornar el ID
+  const existingId = destinationNameToId.get(policyName);
+  if (existingId) {
+    return existingId;
   }
 
-  return destinationPolicyId;
+  // Si ya hay una creación pendiente para esta policy, esperar a que termine
+  const pendingCreation = pendingCreations.get(policyName);
+  if (pendingCreation) {
+    return pendingCreation;
+  }
+
+  // Crear nueva promise para la creación de esta policy
+  const creationPromise = (async () => {
+    const createResult = await handler.create(destinationClient, policyConfig!);
+    const newId = handler.extractIdFromResult(createResult);
+    destinationNameToId.set(policyName, newId);
+    pendingCreations.delete(policyName); // Limpiar después de completar
+    return newId;
+  })();
+
+  pendingCreations.set(policyName, creationPromise);
+  return creationPromise;
 }
 
 export const replaceIds = async ({
@@ -133,6 +148,11 @@ export const replaceIds = async ({
   const originOriginRequestPoliciesCache = new Map<string, OriginRequestPolicyConfig>();
   const destinationNameToId = new Map<string, string>();
 
+  // Maps para rastrear creaciones pendientes (evita duplicados)
+  const pendingCachePolicyCreations = new Map<string, Promise<string>>();
+  const pendingResponseHeadersCreations = new Map<string, Promise<string>>();
+  const pendingOriginRequestCreations = new Map<string, Promise<string>>();
+
   // Popular map de destino con policies existentes
   for (const item of destinationCachePolicies.Items || []) {
     const policy = item.CachePolicy;
@@ -147,67 +167,91 @@ export const replaceIds = async ({
     destinationNameToId.set(policy.OriginRequestPolicyConfig.Name, policy.Id);
   }
 
+  // Crear array de promises para todas las operaciones
+  const promises: Promise<void>[] = [];
+
   // Reemplazar IDs en DefaultCacheBehavior
   const defaultBehavior = distributionConfig.DefaultCacheBehavior;
 
-  defaultBehavior.CachePolicyId = await replacePolicyId(
-    defaultBehavior.CachePolicyId,
-    cachePolicyHandler,
-    originClient,
-    destinationClient,
-    originCachePoliciesCache,
-    destinationNameToId,
+  promises.push(
+    replacePolicyId(
+      defaultBehavior.CachePolicyId,
+      cachePolicyHandler,
+      originClient,
+      destinationClient,
+      originCachePoliciesCache,
+      destinationNameToId,
+      pendingCachePolicyCreations,
+    ).then((id) => { defaultBehavior.CachePolicyId = id; })
   );
 
-  defaultBehavior.ResponseHeadersPolicyId = await replacePolicyId(
-    defaultBehavior.ResponseHeadersPolicyId,
-    responseHeadersPolicyHandler,
-    originClient,
-    destinationClient,
-    originResponseHeadersPoliciesCache,
-    destinationNameToId,
+  promises.push(
+    replacePolicyId(
+      defaultBehavior.ResponseHeadersPolicyId,
+      responseHeadersPolicyHandler,
+      originClient,
+      destinationClient,
+      originResponseHeadersPoliciesCache,
+      destinationNameToId,
+      pendingResponseHeadersCreations,
+    ).then((id) => { defaultBehavior.ResponseHeadersPolicyId = id; })
   );
 
-  defaultBehavior.OriginRequestPolicyId = await replacePolicyId(
-    defaultBehavior.OriginRequestPolicyId,
-    originRequestPolicyHandler,
-    originClient,
-    destinationClient,
-    originOriginRequestPoliciesCache,
-    destinationNameToId,
+  promises.push(
+    replacePolicyId(
+      defaultBehavior.OriginRequestPolicyId,
+      originRequestPolicyHandler,
+      originClient,
+      destinationClient,
+      originOriginRequestPoliciesCache,
+      destinationNameToId,
+      pendingOriginRequestCreations,
+    ).then((id) => { defaultBehavior.OriginRequestPolicyId = id; })
   );
 
   // Reemplazar IDs en CacheBehaviors adicionales
   if (distributionConfig.CacheBehaviors?.Items) {
     for (const behavior of distributionConfig.CacheBehaviors.Items) {
-      behavior.CachePolicyId = await replacePolicyId(
-        behavior.CachePolicyId,
-        cachePolicyHandler,
-        originClient,
-        destinationClient,
-        originCachePoliciesCache,
-        destinationNameToId,
+      promises.push(
+        replacePolicyId(
+          behavior.CachePolicyId,
+          cachePolicyHandler,
+          originClient,
+          destinationClient,
+          originCachePoliciesCache,
+          destinationNameToId,
+          pendingCachePolicyCreations,
+        ).then((id) => { behavior.CachePolicyId = id; })
       );
 
-      behavior.ResponseHeadersPolicyId = await replacePolicyId(
-        behavior.ResponseHeadersPolicyId,
-        responseHeadersPolicyHandler,
-        originClient,
-        destinationClient,
-        originResponseHeadersPoliciesCache,
-        destinationNameToId,
+      promises.push(
+        replacePolicyId(
+          behavior.ResponseHeadersPolicyId,
+          responseHeadersPolicyHandler,
+          originClient,
+          destinationClient,
+          originResponseHeadersPoliciesCache,
+          destinationNameToId,
+          pendingResponseHeadersCreations,
+        ).then((id) => { behavior.ResponseHeadersPolicyId = id; })
       );
 
-      behavior.OriginRequestPolicyId = await replacePolicyId(
-        behavior.OriginRequestPolicyId,
-        originRequestPolicyHandler,
-        originClient,
-        destinationClient,
-        originOriginRequestPoliciesCache,
-        destinationNameToId,
+      promises.push(
+        replacePolicyId(
+          behavior.OriginRequestPolicyId,
+          originRequestPolicyHandler,
+          originClient,
+          destinationClient,
+          originOriginRequestPoliciesCache,
+          destinationNameToId,
+          pendingOriginRequestCreations,
+        ).then((id) => { behavior.OriginRequestPolicyId = id; })
       );
     }
   }
+
+  // Esperar a que todas las operaciones terminen
+  await Promise.all(promises);
 
   return distributionConfig;
 }   
