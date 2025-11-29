@@ -6,6 +6,12 @@ import {
   CachePolicyList,
   OriginRequestPolicyList,
   ResponseHeadersPolicyList,
+  CachePolicy,
+  ResponseHeadersPolicy,
+  OriginRequestPolicy,
+  GetResponseHeadersPolicyCommand,
+  GetOriginRequestPolicyCommand,
+  GetCachePolicyCommand,
 } from "@aws-sdk/client-cloudfront";
 
 type Params = {
@@ -89,4 +95,41 @@ export const getResponseHeadersPolicies = async ({
     console.error("Error listing response headers policies:", error);
     throw error;
   }
+};
+
+export const getCachePolicyById = async ({
+  client,
+  policyId,
+}: {
+  client: CloudFrontClient,
+  policyId: string,
+}): Promise<CachePolicy> => {
+  const command = new GetCachePolicyCommand({ Id: policyId })
+  const response = await client.send(command);
+  return response.CachePolicy;
+};
+
+
+export const getResponseHeadersPolicyById = async ({
+  client,
+  policyId,
+}: {
+  client: CloudFrontClient,
+  policyId: string,
+}): Promise<ResponseHeadersPolicy> => {
+  const command = new GetResponseHeadersPolicyCommand({ Id: policyId })
+  const response = await client.send(command);
+  return response.ResponseHeadersPolicy;
+};
+
+export const getOriginRequestPolicyById = async ({
+  client,
+  policyId,
+}: {
+  client: CloudFrontClient,
+  policyId: string,
+}): Promise<OriginRequestPolicy> => {
+  const command = new GetOriginRequestPolicyCommand({ Id: policyId })
+  const response = await client.send(command);
+  return response.OriginRequestPolicy;
 };
