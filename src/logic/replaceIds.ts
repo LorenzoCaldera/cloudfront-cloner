@@ -24,6 +24,7 @@ import {
   getOriginRequestPolicyById,
   getResponseHeadersPolicyById,
 } from "../aws/getPolicies";
+import { DebugReport } from "../cli";
 
 interface IreplaceIds {
   distributionConfig: DistributionConfig,
@@ -32,6 +33,8 @@ interface IreplaceIds {
   destinationCachePolicies: CachePolicyList,
   destinationResponseHeadersPolicies: ResponseHeadersPolicyList,
   destinationOriginRequestPolicies: OriginRequestPolicyList,
+  debug?: boolean;
+  debugReport?: DebugReport;
 }
 
 type PolicyConfig = CachePolicyConfig | ResponseHeadersPolicyConfig | OriginRequestPolicyConfig;
@@ -98,6 +101,9 @@ async function replacePolicyId<
   originPolicyCache: Map<string, TConfig>,
   destinationNameToId: Map<string, string>,
   pendingCreations: Map<string, Promise<string>>,
+  debug: boolean,
+  debugReport: DebugReport | undefined,
+  policyType: 'CACHE' | 'RESPONSE_HEADERS' | 'ORIGIN_REQUEST',
 ): Promise<string> {
   // Buscar o cargar la policy config del origen
   let policyConfig = originPolicyCache.get(policyId);
@@ -112,16 +118,66 @@ async function replacePolicyId<
   // Si ya existe en destino, retornar el ID
   const existingId = destinationNameToId.get(policyName);
   if (existingId) {
+    if (debug) {
+      console.log(`[DEBUG] Policy already exists in destination: ${policyName}`);
+      console.log(`[DEBUG]   Original ID: ${policyId}`);
+      console.log(`[DEBUG]   Destination ID: ${existingId}`);
+      if (debugReport) {
+        debugReport.policyIdMappings[policyId] = existingId;
+      }
+    }
     return existingId;
   }
 
   // Si ya hay una creación pendiente para esta policy, esperar a que termine
   const pendingCreation = pendingCreations.get(policyName);
   if (pendingCreation) {
+    if (debug) {
+      console.log(`[DEBUG] Waiting for pending creation of: ${policyName}`);
+    }
     return pendingCreation;
   }
 
-  // Crear nueva promise para la creación de esta policy
+  // MODO DEBUG: No crear realmente, solo mockear
+  if (debug) {
+    const mockNewId = `DEBUG_${policyType}_${policyId}`;
+
+    console.log(`\n[DEBUG] ========================================`);
+    console.log(`[DEBUG] Would create ${policyType} policy: ${policyName}`);
+    console.log(`[DEBUG]   Original ID: ${policyId}`);
+    console.log(`[DEBUG]   Mock New ID: ${mockNewId}`);
+    console.log(`[DEBUG] ========================================\n`);
+
+    // Registrar en el debug report
+    if (debugReport) {
+      debugReport.policyIdMappings[policyId] = mockNewId;
+
+      const policyEntry = {
+        originalId: policyId,
+        mockNewId,
+        name: policyName,
+        config: policyConfig as any,
+      };
+
+      switch (policyType) {
+        case 'CACHE':
+          debugReport.policiesToCreate.cachePolicies.push(policyEntry);
+          break;
+        case 'RESPONSE_HEADERS':
+          debugReport.policiesToCreate.responseHeadersPolicies.push(policyEntry);
+          break;
+        case 'ORIGIN_REQUEST':
+          debugReport.policiesToCreate.originRequestPolicies.push(policyEntry);
+          break;
+      }
+    }
+
+    // Agregar el mock ID al map para que otros behaviors lo encuentren
+    destinationNameToId.set(policyName, mockNewId);
+    return mockNewId;
+  }
+
+  // MODO NORMAL: Crear la policy realmente
   const creationPromise = (async () => {
     const createResult = await handler.create(destinationClient, policyConfig!);
     const newId = handler.extractIdFromResult(createResult);
@@ -141,7 +197,18 @@ export const replaceIds = async ({
   destinationCachePolicies,
   destinationResponseHeadersPolicies,
   destinationOriginRequestPolicies,
+  debug = false,
+  debugReport,
 }: IreplaceIds): Promise<DistributionConfig> => {
+  // Guardar config original en debug report
+  if (debug && debugReport) {
+    debugReport.distributionConfig.original = distributionConfig;
+    console.log('\n[DEBUG] ==========================================');
+    console.log('[DEBUG] Starting replaceIds in DEBUG mode');
+    console.log('[DEBUG] No real changes will be made to AWS');
+    console.log('[DEBUG] ==========================================\n');
+  }
+
   // Caches para policies del origen
   const originCachePoliciesCache = new Map<string, CachePolicyConfig>();
   const originResponseHeadersPoliciesCache = new Map<string, ResponseHeadersPolicyConfig>();
@@ -154,17 +221,38 @@ export const replaceIds = async ({
   const pendingOriginRequestCreations = new Map<string, Promise<string>>();
 
   // Popular map de destino con policies existentes
+  if (debug) {
+    console.log('[DEBUG] Loading existing destination policies...');
+  }
+
   for (const item of destinationCachePolicies.Items || []) {
     const policy = item.CachePolicy;
     destinationNameToId.set(policy.CachePolicyConfig.Name, policy.Id);
+    if (debug) {
+      console.log(`[DEBUG]   Found cache policy: ${policy.CachePolicyConfig.Name} (${policy.Id})`);
+    }
   }
+
   for (const item of destinationResponseHeadersPolicies.Items || []) {
     const policy = item.ResponseHeadersPolicy;
     destinationNameToId.set(policy.ResponseHeadersPolicyConfig.Name, policy.Id);
+    if (debug) {
+      console.log(`[DEBUG]   Found response headers policy: ${policy.ResponseHeadersPolicyConfig.Name} (${policy.Id})`);
+    }
   }
+
   for (const item of destinationOriginRequestPolicies.Items || []) {
     const policy = item.OriginRequestPolicy;
     destinationNameToId.set(policy.OriginRequestPolicyConfig.Name, policy.Id);
+    if (debug) {
+      console.log(`[DEBUG]   Found origin request policy: ${policy.OriginRequestPolicyConfig.Name} (${policy.Id})`);
+    }
+  }
+
+  if (debug) {
+    console.log(`[DEBUG] Found ${destinationCachePolicies.Items?.length || 0} cache policies`);
+    console.log(`[DEBUG] Found ${destinationResponseHeadersPolicies.Items?.length || 0} response headers policies`);
+    console.log(`[DEBUG] Found ${destinationOriginRequestPolicies.Items?.length || 0} origin request policies\n`);
   }
 
   // Crear array de promises para todas las operaciones
@@ -172,6 +260,10 @@ export const replaceIds = async ({
 
   // Reemplazar IDs en DefaultCacheBehavior
   const defaultBehavior = distributionConfig.DefaultCacheBehavior;
+
+  if (debug) {
+    console.log('[DEBUG] Processing DefaultCacheBehavior...');
+  }
 
   promises.push(
     replacePolicyId(
@@ -182,6 +274,9 @@ export const replaceIds = async ({
       originCachePoliciesCache,
       destinationNameToId,
       pendingCachePolicyCreations,
+      debug,
+      debugReport,
+      'CACHE',
     ).then((id) => { defaultBehavior.CachePolicyId = id; })
   );
 
@@ -194,6 +289,9 @@ export const replaceIds = async ({
       originResponseHeadersPoliciesCache,
       destinationNameToId,
       pendingResponseHeadersCreations,
+      debug,
+      debugReport,
+      'RESPONSE_HEADERS',
     ).then((id) => { defaultBehavior.ResponseHeadersPolicyId = id; })
   );
 
@@ -206,12 +304,23 @@ export const replaceIds = async ({
       originOriginRequestPoliciesCache,
       destinationNameToId,
       pendingOriginRequestCreations,
+      debug,
+      debugReport,
+      'ORIGIN_REQUEST',
     ).then((id) => { defaultBehavior.OriginRequestPolicyId = id; })
   );
 
   // Reemplazar IDs en CacheBehaviors adicionales
   if (distributionConfig.CacheBehaviors?.Items) {
-    for (const behavior of distributionConfig.CacheBehaviors.Items) {
+    if (debug) {
+      console.log(`[DEBUG] Processing ${distributionConfig.CacheBehaviors.Items.length} additional CacheBehaviors...`);
+    }
+
+    for (const [index, behavior] of distributionConfig.CacheBehaviors.Items.entries()) {
+      if (debug) {
+        console.log(`[DEBUG] Processing CacheBehavior #${index + 1} (PathPattern: ${behavior.PathPattern})`);
+      }
+
       promises.push(
         replacePolicyId(
           behavior.CachePolicyId,
@@ -221,6 +330,9 @@ export const replaceIds = async ({
           originCachePoliciesCache,
           destinationNameToId,
           pendingCachePolicyCreations,
+          debug,
+          debugReport,
+          'CACHE',
         ).then((id) => { behavior.CachePolicyId = id; })
       );
 
@@ -233,6 +345,9 @@ export const replaceIds = async ({
           originResponseHeadersPoliciesCache,
           destinationNameToId,
           pendingResponseHeadersCreations,
+          debug,
+          debugReport,
+          'RESPONSE_HEADERS',
         ).then((id) => { behavior.ResponseHeadersPolicyId = id; })
       );
 
@@ -245,6 +360,9 @@ export const replaceIds = async ({
           originOriginRequestPoliciesCache,
           destinationNameToId,
           pendingOriginRequestCreations,
+          debug,
+          debugReport,
+          'ORIGIN_REQUEST',
         ).then((id) => { behavior.OriginRequestPolicyId = id; })
       );
     }
@@ -252,6 +370,19 @@ export const replaceIds = async ({
 
   // Esperar a que todas las operaciones terminen
   await Promise.all(promises);
+
+  // Guardar config modificada en debug report
+  if (debug && debugReport) {
+    debugReport.distributionConfig.modified = JSON.parse(JSON.stringify(distributionConfig));
+
+    console.log('\n[DEBUG] ==========================================');
+    console.log('[DEBUG] Summary of changes:');
+    console.log(`[DEBUG]   Cache Policies to create: ${debugReport.policiesToCreate.cachePolicies.length}`);
+    console.log(`[DEBUG]   Response Headers Policies to create: ${debugReport.policiesToCreate.responseHeadersPolicies.length}`);
+    console.log(`[DEBUG]   Origin Request Policies to create: ${debugReport.policiesToCreate.originRequestPolicies.length}`);
+    console.log(`[DEBUG]   Total policy ID mappings: ${Object.keys(debugReport.policyIdMappings).length}`);
+    console.log('[DEBUG] ==========================================\n');
+  }
 
   return distributionConfig;
 }   
