@@ -136,6 +136,7 @@ const main = async () => {
   const newDistributionConfig = await replaceIds({
     distributionConfig: originDistributionConfig.DistributionConfig,
     debugReport,
+    debug,
     originClient,
     destinationClient,
     destinationCachePolicies,
