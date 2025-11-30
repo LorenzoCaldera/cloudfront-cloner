@@ -94,7 +94,7 @@ async function replacePolicyId<
   TGetResult extends GetPolicyResult,
   TCreateResult extends CreatePolicyResult,
 >(
-  policyId: string,
+  policyId: string | undefined,
   handler: PolicyHandler<TConfig, TGetResult, TCreateResult>,
   originClient: CloudFrontClient,
   destinationClient: CloudFrontClient,
@@ -104,13 +104,26 @@ async function replacePolicyId<
   debug: boolean,
   debugReport: DebugReport | undefined,
   policyType: 'CACHE' | 'RESPONSE_HEADERS' | 'ORIGIN_REQUEST',
-): Promise<string> {
+): Promise<string | undefined> {
+  // Si no hay policyId o está vacío, retornar undefined
+  if (!policyId || policyId.trim() === '') {
+    if (debug) {
+      console.log(`[DEBUG] No ${policyType} policy ID provided, skipping...`);
+    }
+    return undefined;
+  }
+
   // Buscar o cargar la policy config del origen
   let policyConfig = originPolicyCache.get(policyId);
   if (!policyConfig) {
-    const policy = await handler.getById({ client: originClient, policyId });
-    policyConfig = handler.extractConfig(policy);
-    originPolicyCache.set(policyId, policyConfig);
+    try {
+      const policy = await handler.getById({ client: originClient, policyId });
+      policyConfig = handler.extractConfig(policy);
+      originPolicyCache.set(policyId, policyConfig);
+    } catch (error) {
+      console.error(`[ERROR] Failed to get ${policyType} policy with ID ${policyId}:`, error);
+      throw error;
+    }
   }
 
   const policyName = handler.extractName(policyConfig);
@@ -138,7 +151,6 @@ async function replacePolicyId<
     return pendingCreation;
   }
 
-  // MODO DEBUG: No crear realmente, solo mockear
   if (debug) {
     const mockNewId = `DEBUG_${policyType}_${policyId}`;
 
@@ -148,7 +160,6 @@ async function replacePolicyId<
     console.log(`[DEBUG]   Mock New ID: ${mockNewId}`);
     console.log(`[DEBUG] ========================================\n`);
 
-    // Registrar en el debug report
     if (debugReport) {
       debugReport.policyIdMappings[policyId] = mockNewId;
 
@@ -177,7 +188,6 @@ async function replacePolicyId<
     return mockNewId;
   }
 
-  // MODO NORMAL: Crear la policy realmente
   const creationPromise = (async () => {
     const createResult = await handler.create(destinationClient, policyConfig!);
     const newId = handler.extractIdFromResult(createResult);
@@ -385,4 +395,4 @@ export const replaceIds = async ({
   }
 
   return distributionConfig;
-}   
+}
