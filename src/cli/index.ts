@@ -94,10 +94,14 @@ const main = async () => {
 
   const originClient = new CloudFrontClient({
     region: "us-east-1",
+    maxAttempts: 100,
+    retryMode: "adaptive",
     credentials: fromIni({ profile: originProfileName }),
   });
   const destinationClient = new CloudFrontClient({
     region: "us-east-1",
+    maxAttempts: 100,
+    retryMode: "adaptive",
     credentials: fromIni({ profile: destinationProfileName }),
   });
 
@@ -134,7 +138,7 @@ const main = async () => {
   };
 
   const newDistributionConfig = await replaceIds({
-    distributionConfig: originDistributionConfig.DistributionConfig,
+    distributionConfig: { ...originDistributionConfig.DistributionConfig },
     debugReport,
     debug,
     originClient,
@@ -146,7 +150,7 @@ const main = async () => {
 
   const newRefererName = copyRefererName ?? `copyOf_${distributionIdToCopy}`;
   const newComment = copyComment ?? 'COPY: ' + newDistributionConfig.Comment;
-  newDistributionConfig.CallerReference = newRefererName + '_' + new Date().getUTCMilliseconds();
+  newDistributionConfig.CallerReference = newRefererName + '_' + new Date().getTime();
   newDistributionConfig.Comment = newComment;
   newDistributionConfig.Aliases.Quantity = 0;
   delete newDistributionConfig.Aliases.Items;
