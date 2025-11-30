@@ -22,12 +22,12 @@ type Params = {
 /**
  * Obtiene las políticas de caché de CloudFront.
  * @param client Cliente de AWS
- * @param responseType Tipo de políticas a listar (default custom)
+ * @param responseType Tipo de políticas a listar
  * @returns Lista de políticas de caché
  */
 export const getCachePolicies = async ({
   client,
-  responseType = "custom"
+  responseType
 }: Params): Promise<CachePolicyList> => {
   try {
     const command = new ListCachePoliciesCommand({ Type: responseType });
@@ -48,12 +48,12 @@ export const getCachePolicies = async ({
 /**
  * Obtiene las políticas de solicitud de origen de CloudFront.
  * @param client Cliente de AWS
- * @param responseType Tipo de políticas a listar (default custom)
+ * @param responseType Tipo de políticas a listar
  * @returns Lista de políticas de solicitud de origen
  */
 export const getOriginRequestPolicies = async ({
   client,
-  responseType = "custom"
+  responseType
 }: Params): Promise<OriginRequestPolicyList> => {
   try {
     const command = new ListOriginRequestPoliciesCommand({ Type: responseType });
@@ -74,12 +74,12 @@ export const getOriginRequestPolicies = async ({
 /**
  * Obtiene las políticas de encabezados de respuesta de CloudFront.
  * @param client Cliente de AWS
- * @param responseType Tipo de políticas a listar (default custom)
+ * @param responseType Tipo de políticas a listar
  * @returns Lista de políticas de encabezados de respuesta
  */
 export const getResponseHeadersPolicies = async ({
   client,
-  responseType = "custom"
+  responseType
 }: Params): Promise<ResponseHeadersPolicyList> => {
   try {
     const command = new ListResponseHeadersPoliciesCommand({ Type: responseType });
