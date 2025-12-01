@@ -98,7 +98,7 @@ async function replacePolicyId<
   handler: PolicyHandler<TConfig, TGetResult, TCreateResult>,
   originClient: CloudFrontClient,
   destinationClient: CloudFrontClient,
-  originPolicyCache: Map<string, TConfig>,
+  originPoliciesStorage: Map<string, TConfig>,
   destinationNameToId: Map<string, string>,
   pendingCreations: Map<string, Promise<string>>,
   debug: boolean,
@@ -114,12 +114,12 @@ async function replacePolicyId<
   }
 
   // Buscar o cargar la policy config del origen
-  let policyConfig = originPolicyCache.get(policyId);
+  let policyConfig = originPoliciesStorage.get(policyId);
   if (!policyConfig) {
     try {
       const policy = await handler.getById({ client: originClient, policyId });
       policyConfig = handler.extractConfig(policy);
-      originPolicyCache.set(policyId, policyConfig);
+      originPoliciesStorage.set(policyId, policyConfig);
     } catch (error) {
       console.error(`[ERROR] Failed to get ${policyType} policy with ID ${policyId}:`, error);
       throw error;
@@ -220,9 +220,9 @@ export const replaceIds = async ({
   }
 
   // Caches para policies del origen
-  const originCachePoliciesCache = new Map<string, CachePolicyConfig>();
-  const originResponseHeadersPoliciesCache = new Map<string, ResponseHeadersPolicyConfig>();
-  const originOriginRequestPoliciesCache = new Map<string, OriginRequestPolicyConfig>();
+  const originCachePoliciesStorage = new Map<string, CachePolicyConfig>();
+  const originResponseHeadersPoliciesStorage = new Map<string, ResponseHeadersPolicyConfig>();
+  const originOriginRequestPoliciesStorage = new Map<string, OriginRequestPolicyConfig>();
   const destinationNameToId = new Map<string, string>();
 
   // Maps para rastrear creaciones pendientes (evita duplicados)
@@ -238,25 +238,22 @@ export const replaceIds = async ({
   for (const item of destinationCachePolicies.Items || []) {
     const policy = item.CachePolicy;
     destinationNameToId.set(policy.CachePolicyConfig.Name, policy.Id);
-    if (debug) {
+    if (debug) 
       console.log(`[DEBUG]   Found cache policy: ${policy.CachePolicyConfig.Name} (${policy.Id})`);
-    }
   }
 
   for (const item of destinationResponseHeadersPolicies.Items || []) {
     const policy = item.ResponseHeadersPolicy;
     destinationNameToId.set(policy.ResponseHeadersPolicyConfig.Name, policy.Id);
-    if (debug) {
+    if (debug) 
       console.log(`[DEBUG]   Found response headers policy: ${policy.ResponseHeadersPolicyConfig.Name} (${policy.Id})`);
-    }
   }
 
   for (const item of destinationOriginRequestPolicies.Items || []) {
     const policy = item.OriginRequestPolicy;
     destinationNameToId.set(policy.OriginRequestPolicyConfig.Name, policy.Id);
-    if (debug) {
+    if (debug) 
       console.log(`[DEBUG]   Found origin request policy: ${policy.OriginRequestPolicyConfig.Name} (${policy.Id})`);
-    }
   }
 
   if (debug) {
@@ -275,13 +272,14 @@ export const replaceIds = async ({
     console.log('[DEBUG] Processing DefaultCacheBehavior...');
   }
 
+  // Cache policies
   promises.push(
     replacePolicyId(
       defaultBehavior.CachePolicyId,
       cachePolicyHandler,
       originClient,
       destinationClient,
-      originCachePoliciesCache,
+      originCachePoliciesStorage,
       destinationNameToId,
       pendingCachePolicyCreations,
       debug,
@@ -289,14 +287,14 @@ export const replaceIds = async ({
       'CACHE',
     ).then((id) => { defaultBehavior.CachePolicyId = id; })
   );
-
+  // Response headers policies
   promises.push(
     replacePolicyId(
       defaultBehavior.ResponseHeadersPolicyId,
       responseHeadersPolicyHandler,
       originClient,
       destinationClient,
-      originResponseHeadersPoliciesCache,
+      originResponseHeadersPoliciesStorage,
       destinationNameToId,
       pendingResponseHeadersCreations,
       debug,
@@ -304,14 +302,14 @@ export const replaceIds = async ({
       'RESPONSE_HEADERS',
     ).then((id) => { defaultBehavior.ResponseHeadersPolicyId = id; })
   );
-
+  // Origin request policies
   promises.push(
     replacePolicyId(
       defaultBehavior.OriginRequestPolicyId,
       originRequestPolicyHandler,
       originClient,
       destinationClient,
-      originOriginRequestPoliciesCache,
+      originOriginRequestPoliciesStorage,
       destinationNameToId,
       pendingOriginRequestCreations,
       debug,
@@ -337,7 +335,7 @@ export const replaceIds = async ({
           cachePolicyHandler,
           originClient,
           destinationClient,
-          originCachePoliciesCache,
+          originCachePoliciesStorage,
           destinationNameToId,
           pendingCachePolicyCreations,
           debug,
@@ -352,7 +350,7 @@ export const replaceIds = async ({
           responseHeadersPolicyHandler,
           originClient,
           destinationClient,
-          originResponseHeadersPoliciesCache,
+          originResponseHeadersPoliciesStorage,
           destinationNameToId,
           pendingResponseHeadersCreations,
           debug,
@@ -367,7 +365,7 @@ export const replaceIds = async ({
           originRequestPolicyHandler,
           originClient,
           destinationClient,
-          originOriginRequestPoliciesCache,
+          originOriginRequestPoliciesStorage,
           destinationNameToId,
           pendingOriginRequestCreations,
           debug,
