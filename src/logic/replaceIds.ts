@@ -36,12 +36,10 @@ interface IreplaceIds {
 }
 
 type PolicyConfig = CachePolicyConfig | ResponseHeadersPolicyConfig | OriginRequestPolicyConfig;
-type GetPolicyResult = CachePolicy | OriginRequestPolicy | ResponseHeadersPolicy;
 type CreatePolicyResult = CreateCachePolicyResult | CreateOriginRequestPolicyResult | CreateResponseHeadersPolicyResult;
 
 interface PolicyHandler<
   TConfig extends PolicyConfig,
-  TGetResult extends GetPolicyResult,
   TCreateResult extends CreatePolicyResult,
 > {
   create: (client: CloudFrontClient, config: TConfig) => Promise<TCreateResult>;
@@ -51,7 +49,6 @@ interface PolicyHandler<
 
 const cachePolicyHandler: PolicyHandler<
   CachePolicyConfig,
-  CachePolicy,
   CreateCachePolicyResult
 > = {
   create: createCachePolicy,
@@ -61,7 +58,6 @@ const cachePolicyHandler: PolicyHandler<
 
 const responseHeadersPolicyHandler: PolicyHandler<
   ResponseHeadersPolicyConfig,
-  ResponseHeadersPolicy,
   CreateResponseHeadersPolicyResult
 > = {
   create: createResponseHeadersPolicy,
@@ -71,7 +67,6 @@ const responseHeadersPolicyHandler: PolicyHandler<
 
 const originRequestPolicyHandler: PolicyHandler<
   OriginRequestPolicyConfig,
-  OriginRequestPolicy,
   CreateOriginRequestPolicyResult
 > = {
   create: createOriginRequestPolicy,
@@ -81,11 +76,10 @@ const originRequestPolicyHandler: PolicyHandler<
 
 async function replacePolicyId<
   TConfig extends PolicyConfig,
-  TGetResult extends GetPolicyResult,
   TCreateResult extends CreatePolicyResult,
 >(
   policyId: string | undefined,
-  handler: PolicyHandler<TConfig, TGetResult, TCreateResult>,
+  handler: PolicyHandler<TConfig, TCreateResult>,
   destinationClient: CloudFrontClient,
   originPoliciesStorage: Map<string, TConfig>,
   destinationNameToId: Map<string, string>,
@@ -94,9 +88,9 @@ async function replacePolicyId<
   debugReport: DebugReport | undefined,
   policyType: 'CACHE' | 'RESPONSE_HEADERS' | 'ORIGIN_REQUEST',
 ): Promise<string | undefined> {
-  const policyTypeLabel = policyType === 'CACHE' ? 'Cache' : 
-                          policyType === 'RESPONSE_HEADERS' ? 'Response Headers' : 
-                          'Origin Request';
+  const policyTypeLabel = policyType === 'CACHE' ? 'Cache' :
+    policyType === 'RESPONSE_HEADERS' ? 'Response Headers' :
+      'Origin Request';
 
   // Si no hay policyId o está vacío, retornar undefined
   if (!policyId || policyId.trim() === '') {
@@ -189,7 +183,7 @@ async function replacePolicyId<
   return creationPromise;
 }
 
-export const replaceIds = async ({
+export const replaceCacheBehaviors = async ({
   distributionConfig,
   originCachePolicies,
   originResponseHeadersPolicies,

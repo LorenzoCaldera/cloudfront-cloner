@@ -13,7 +13,7 @@ import {
   getOriginRequestPolicies,
   getResponseHeadersPolicies
 } from "../aws/getPolicies";
-import { replaceIds } from "../logic/replaceIds";
+import { replaceCacheBehaviors } from "../logic/replaceIds";
 import { writeFileSync } from "fs";
 import chalk from "../logic/mini-chalk";
 
@@ -158,7 +158,7 @@ const main = async () => {
 
   console.log(chalk.cyan("🔄 Processing policies and replacing IDs..."));
 
-  const newDistributionConfig = await replaceIds({
+  const newDistributionConfig = await replaceCacheBehaviors({
     distributionConfig: { ...originDistributionConfig.DistributionConfig },
     debugReport,
     debug,
