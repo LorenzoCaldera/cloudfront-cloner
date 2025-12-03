@@ -93,10 +93,14 @@ async function replacePolicyId<
   debugReport: DebugReport | undefined,
   policyType: 'CACHE' | 'RESPONSE_HEADERS' | 'ORIGIN_REQUEST',
 ): Promise<string | undefined> {
+  const policyTypeLabel = policyType === 'CACHE' ? 'Cache' : 
+                          policyType === 'RESPONSE_HEADERS' ? 'Response Headers' : 
+                          'Origin Request';
+
   // Si no hay policyId o está vacío, retornar undefined
   if (!policyId || policyId.trim() === '') {
     if (debug) {
-      console.log(`[DEBUG] No ${policyType} policy ID provided, skipping...`);
+      console.log(`[DEBUG] ⊘ No ${policyTypeLabel} policy ID provided - skipping`);
     }
     return undefined;
   }
@@ -105,9 +109,9 @@ async function replacePolicyId<
   let policyConfig = originPoliciesStorage.get(policyId);
   if (!policyConfig) {
     if (debug) {
-      console.log(`[DEBUG] The ${policyType} policy is not in the storage. Probably because it's a default AWS policy.`);
+      console.log(`[DEBUG] ⊘ ${policyTypeLabel} policy ID "${policyId}" not found in source - likely an AWS managed policy, keeping original ID`);
     }
-    return undefined;
+    return policyId; // Retorna el ID original para políticas manejadas por AWS
   }
 
   const policyName = handler.extractName(policyConfig);
@@ -116,9 +120,8 @@ async function replacePolicyId<
   const existingId = destinationNameToId.get(policyName);
   if (existingId) {
     if (debug) {
-      console.log(`[DEBUG] Policy already exists in destination: ${policyName}`);
-      console.log(`[DEBUG]   Original ID: ${policyId}`);
-      console.log(`[DEBUG]   Destination ID: ${existingId}`);
+      console.log(`[DEBUG] ✓ ${policyTypeLabel} policy "${policyName}" already exists in destination`);
+      console.log(`[DEBUG]   Source ID: ${policyId} → Destination ID: ${existingId}`);
       if (debugReport) {
         debugReport.policyIdMappings[policyId] = existingId;
       }
@@ -130,7 +133,7 @@ async function replacePolicyId<
   const pendingCreation = pendingCreations.get(policyName);
   if (pendingCreation) {
     if (debug) {
-      console.log(`[DEBUG] Waiting for pending creation of: ${policyName}`);
+      console.log(`[DEBUG] ⏳ Waiting for pending creation of ${policyTypeLabel} policy: "${policyName}"`);
     }
     return pendingCreation;
   }
@@ -139,9 +142,10 @@ async function replacePolicyId<
     const mockNewId = `DEBUG_${policyType}_${policyId}`;
 
     console.log(`\n[DEBUG] ========================================`);
-    console.log(`[DEBUG] Would create ${policyType} policy: ${policyName}`);
-    console.log(`[DEBUG]   Original ID: ${policyId}`);
-    console.log(`[DEBUG]   Mock New ID: ${mockNewId}`);
+    console.log(`[DEBUG] ➕ Creating new ${policyTypeLabel} policy`);
+    console.log(`[DEBUG]   Name: ${policyName}`);
+    console.log(`[DEBUG]   Source ID: ${policyId}`);
+    console.log(`[DEBUG]   Mock Destination ID: ${mockNewId}`);
     console.log(`[DEBUG] ========================================\n`);
 
     if (debugReport) {
@@ -199,10 +203,10 @@ export const replaceIds = async ({
   // Guardar config original en debug report
   if (debug && debugReport) {
     debugReport.distributionConfig.original = distributionConfig;
-    console.log('\n[DEBUG] ==========================================');
-    console.log('[DEBUG] Starting replaceIds in DEBUG mode');
-    console.log('[DEBUG] No real changes will be made to AWS');
-    console.log('[DEBUG] ==========================================\n');
+    console.log('\n╔════════════════════════════════════════════╗');
+    console.log('║  DEBUG MODE - Policy ID Replacement        ║');
+    console.log('║  No real changes will be made to AWS       ║');
+    console.log('╚════════════════════════════════════════════╝\n');
   }
 
   // Caches para policies del origen
@@ -216,59 +220,68 @@ export const replaceIds = async ({
   const pendingResponseHeadersCreations = new Map<string, Promise<string>>();
   const pendingOriginRequestCreations = new Map<string, Promise<string>>();
 
-  // Popular map de destino con policies existentes
+  // Popular map con policies de la distribución origen
   if (debug) {
-    console.log('[DEBUG] Loading existing destination policies...');
+    console.log('[DEBUG] 📥 Loading policies from source distribution...\n');
   }
 
   for (const item of originCachePolicies.Items || []) {
     const policy = item.CachePolicy;
     originCachePoliciesStorage.set(policy.Id, policy.CachePolicyConfig);
     if (debug)
-      console.log(`[DEBUG]   Found origin cache policy: ${policy.CachePolicyConfig.Name} (${policy.Id})`);
+      console.log(`[DEBUG]   • Cache Policy: "${policy.CachePolicyConfig.Name}" (${policy.Id})`);
   }
 
   for (const item of originResponseHeadersPolicies.Items || []) {
     const policy = item.ResponseHeadersPolicy;
     originResponseHeadersPoliciesStorage.set(policy.Id, policy.ResponseHeadersPolicyConfig);
     if (debug)
-      console.log(`[DEBUG]   Found origin response headers policy: ${policy.ResponseHeadersPolicyConfig.Name} (${policy.Id})`);
+      console.log(`[DEBUG]   • Response Headers Policy: "${policy.ResponseHeadersPolicyConfig.Name}" (${policy.Id})`);
   }
 
   for (const item of originOriginRequestPolicies.Items || []) {
     const policy = item.OriginRequestPolicy;
     originOriginRequestPoliciesStorage.set(policy.Id, policy.OriginRequestPolicyConfig);
     if (debug)
-      console.log(`[DEBUG]   Found origin origin request policy: ${policy.OriginRequestPolicyConfig.Name} (${policy.Id})`);
+      console.log(`[DEBUG]   • Origin Request Policy: "${policy.OriginRequestPolicyConfig.Name}" (${policy.Id})`);
+  }
+
+  if (debug) {
+    console.log(`\n[DEBUG] 📊 Source distribution summary:`);
+    console.log(`[DEBUG]   - ${originCachePolicies.Items?.length || 0} Cache policies`);
+    console.log(`[DEBUG]   - ${originResponseHeadersPolicies.Items?.length || 0} Response Headers policies`);
+    console.log(`[DEBUG]   - ${originOriginRequestPolicies.Items?.length || 0} Origin Request policies\n`);
+  }
+
+  // Popular map con policies existentes en destino
+  if (debug) {
+    console.log('[DEBUG] 📥 Loading existing policies from destination account...\n');
   }
 
   for (const item of destinationCachePolicies.Items || []) {
     const policy = item.CachePolicy;
     destinationNameToId.set(policy.CachePolicyConfig.Name, policy.Id);
     if (debug)
-      console.log(`[DEBUG]   Found destination cache policy: ${policy.CachePolicyConfig.Name} (${policy.Id})`);
+      console.log(`[DEBUG]   • Cache Policy: "${policy.CachePolicyConfig.Name}" (${policy.Id})`);
   }
   for (const item of destinationResponseHeadersPolicies.Items || []) {
     const policy = item.ResponseHeadersPolicy;
     destinationNameToId.set(policy.ResponseHeadersPolicyConfig.Name, policy.Id);
     if (debug)
-      console.log(`[DEBUG]   Found destination response headers policy: ${policy.ResponseHeadersPolicyConfig.Name} (${policy.Id})`);
+      console.log(`[DEBUG]   • Response Headers Policy: "${policy.ResponseHeadersPolicyConfig.Name}" (${policy.Id})`);
   }
   for (const item of destinationOriginRequestPolicies.Items || []) {
     const policy = item.OriginRequestPolicy;
     destinationNameToId.set(policy.OriginRequestPolicyConfig.Name, policy.Id);
     if (debug)
-      console.log(`[DEBUG]   Found destination origin request policy: ${policy.OriginRequestPolicyConfig.Name} (${policy.Id})`);
+      console.log(`[DEBUG]   • Origin Request Policy: "${policy.OriginRequestPolicyConfig.Name}" (${policy.Id})`);
   }
 
   if (debug) {
-    console.log(`[DEBUG] Found ${originCachePolicies.Items?.length || 0} origin cache policies`);
-    console.log(`[DEBUG] Found ${originResponseHeadersPolicies.Items?.length || 0} origin response headers policies`);
-    console.log(`[DEBUG] Found ${originOriginRequestPolicies.Items?.length || 0} origin origin request policies\n`);
-
-    console.log(`[DEBUG] Found ${destinationCachePolicies.Items?.length || 0} destination cache policies`);
-    console.log(`[DEBUG] Found ${destinationResponseHeadersPolicies.Items?.length || 0} destination response headers policies`);
-    console.log(`[DEBUG] Found ${destinationOriginRequestPolicies.Items?.length || 0} destination origin request policies\n`);
+    console.log(`\n[DEBUG] 📊 Destination account summary:`);
+    console.log(`[DEBUG]   - ${destinationCachePolicies.Items?.length || 0} Cache policies`);
+    console.log(`[DEBUG]   - ${destinationResponseHeadersPolicies.Items?.length || 0} Response Headers policies`);
+    console.log(`[DEBUG]   - ${destinationOriginRequestPolicies.Items?.length || 0} Origin Request policies\n`);
   }
 
   // Crear array de promises para todas las operaciones
@@ -278,7 +291,7 @@ export const replaceIds = async ({
   const defaultBehavior = distributionConfig.DefaultCacheBehavior;
 
   if (debug) {
-    console.log('[DEBUG] Processing DefaultCacheBehavior...');
+    console.log('[DEBUG] 🔄 Processing DefaultCacheBehavior...\n');
   }
 
   // Cache policies
@@ -327,12 +340,12 @@ export const replaceIds = async ({
   // Reemplazar IDs en CacheBehaviors adicionales
   if (distributionConfig.CacheBehaviors?.Items) {
     if (debug) {
-      console.log(`[DEBUG] Processing ${distributionConfig.CacheBehaviors.Items.length} additional CacheBehaviors...`);
+      console.log(`[DEBUG] 🔄 Processing ${distributionConfig.CacheBehaviors.Items.length} additional CacheBehaviors...\n`);
     }
 
     for (const [index, behavior] of distributionConfig.CacheBehaviors.Items.entries()) {
       if (debug) {
-        console.log(`[DEBUG] Processing CacheBehavior #${index + 1} (PathPattern: ${behavior.PathPattern})`);
+        console.log(`[DEBUG] 📍 CacheBehavior #${index + 1} - PathPattern: "${behavior.PathPattern}"\n`);
       }
 
       promises.push(
@@ -386,13 +399,14 @@ export const replaceIds = async ({
   if (debug && debugReport) {
     debugReport.distributionConfig.modified = JSON.parse(JSON.stringify(distributionConfig));
 
-    console.log('\n[DEBUG] ==========================================');
-    console.log('[DEBUG] Summary of changes:');
-    console.log(`[DEBUG]   Cache Policies to create: ${debugReport.policiesToCreate.cachePolicies.length}`);
-    console.log(`[DEBUG]   Response Headers Policies to create: ${debugReport.policiesToCreate.responseHeadersPolicies.length}`);
-    console.log(`[DEBUG]   Origin Request Policies to create: ${debugReport.policiesToCreate.originRequestPolicies.length}`);
-    console.log(`[DEBUG]   Total policy ID mappings: ${Object.keys(debugReport.policyIdMappings).length}`);
-    console.log('[DEBUG] ==========================================\n');
+    console.log('\n╔════════════════════════════════════════════╗');
+    console.log('║  SUMMARY - Policy Replacement              ║');
+    console.log('╚════════════════════════════════════════════╝');
+    console.log(`[DEBUG] ➕ Policies to create:`);
+    console.log(`[DEBUG]   - Cache: ${debugReport.policiesToCreate.cachePolicies.length}`);
+    console.log(`[DEBUG]   - Response Headers: ${debugReport.policiesToCreate.responseHeadersPolicies.length}`);
+    console.log(`[DEBUG]   - Origin Request: ${debugReport.policiesToCreate.originRequestPolicies.length}`);
+    console.log(`[DEBUG] 🔗 Total ID mappings: ${Object.keys(debugReport.policyIdMappings).length}\n`);
   }
 
   return distributionConfig;
