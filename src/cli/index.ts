@@ -5,7 +5,7 @@ import {
   OriginRequestPolicyConfig,
   ResponseHeadersPolicyConfig
 } from "@aws-sdk/client-cloudfront";
-import { parseArgs } from "../logic/parseArgs";
+import { parseArgs } from "../utils/parseArgs";
 import { fromIni } from "@aws-sdk/credential-providers";
 import { getDistributionConfig } from "../aws/getDistributionConfig";
 import {
