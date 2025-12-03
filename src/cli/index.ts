@@ -114,13 +114,13 @@ const main = async () => {
     originOriginRequestPolicies,
     destinationOriginRequestPolicies,
   ] = await Promise.all([
-    await getDistributionConfig(distributionIdToCopy, originClient),
-    await getCachePolicies({ client: originClient }),
-    await getCachePolicies({ client: destinationClient }),
-    await getResponseHeadersPolicies({ client: originClient }),
-    await getResponseHeadersPolicies({ client: destinationClient }),
-    await getOriginRequestPolicies({ client: originClient }),
-    await getOriginRequestPolicies({ client: destinationClient }),
+    getDistributionConfig(distributionIdToCopy, originClient),
+    getCachePolicies({ client: originClient }),
+    getCachePolicies({ client: destinationClient }),
+    getResponseHeadersPolicies({ client: originClient }),
+    getResponseHeadersPolicies({ client: destinationClient }),
+    getOriginRequestPolicies({ client: originClient }),
+    getOriginRequestPolicies({ client: destinationClient }),
   ]);
 
   // Initialize debug report
