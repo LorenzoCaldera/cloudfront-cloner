@@ -223,7 +223,7 @@ export const replaceIds = async ({
 
   // Popular map con policies de la distribución origen
   if (debug) {
-    console.log(chalk.cyan.bold('📥 Loading policies from source distribution...\n'));
+    console.log(chalk.cyan.bold('📥 Policies from source distribution...\n'));
   }
 
   for (const item of originCachePolicies.Items || []) {
@@ -256,7 +256,7 @@ export const replaceIds = async ({
 
   // Popular map con policies existentes en destino
   if (debug) {
-    console.log(chalk.cyan.bold('📥 Loading existing policies from destination account...\n'));
+    console.log(chalk.cyan.bold('📥 Existing policies from destination account...\n'));
   }
 
   for (const item of destinationCachePolicies.Items || []) {
