@@ -17,7 +17,7 @@ import {
   createResponseHeadersPolicy,
 } from "../aws/createPolicies";
 import { DebugReport } from "../cli";
-import chalk from "./mini-chalk";
+import chalk from "../utils/mini-chalk";
 
 interface IreplaceIds {
   distributionConfig: DistributionConfig,

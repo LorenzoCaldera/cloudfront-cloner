@@ -15,7 +15,7 @@ import {
 } from "../aws/getPolicies";
 import { replaceCacheBehaviors } from "../logic/replaceIds";
 import { writeFileSync } from "fs";
-import chalk from "../logic/mini-chalk";
+import chalk from "../utils/mini-chalk";
 
 export interface DebugReport {
   summary: {
