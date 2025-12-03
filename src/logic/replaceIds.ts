@@ -112,7 +112,7 @@ async function replacePolicyId<
   const existingId = destinationNameToId.get(policyName);
   if (existingId) {
     if (debug) {
-      console.log(chalk.green(`  ✓ ${policyTypeLabel} policy`) + chalk.cyan(` "${policyName}"`) + chalk.green(` already exists`));
+      console.log(chalk.green(`  ✅ ${policyTypeLabel} policy`) + chalk.cyan(` "${policyName}"`) + chalk.green(` already exists`));
       console.log(chalk.dim(`    ${policyId} → ${existingId}`));
       if (debugReport) {
         debugReport.policyIdMappings[policyId] = existingId;

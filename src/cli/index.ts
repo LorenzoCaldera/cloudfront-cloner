@@ -65,32 +65,32 @@ const main = async () => {
 
   // Validation
   if (!originProfileName || typeof originProfileName !== "string") {
-    console.error(chalk.red.bold("✗ Error:"), chalk.red("--originProfileName is required and must be a string"));
+    console.error(chalk.red.bold("❌ Error:"), chalk.red("--originProfileName is required and must be a string"));
     process.exit(1);
   }
 
   if (!destinationProfileName || typeof destinationProfileName !== "string") {
-    console.error(chalk.red.bold("✗ Error:"), chalk.red("--destinationProfileName is required and must be a string"));
+    console.error(chalk.red.bold("❌ Error:"), chalk.red("--destinationProfileName is required and must be a string"));
     process.exit(1);
   }
 
   if (!distributionIdToCopy || typeof distributionIdToCopy !== "string") {
-    console.error(chalk.red.bold("✗ Error:"), chalk.red("--distributionIdToCopy is required and must be a string"));
+    console.error(chalk.red.bold("❌ Error:"), chalk.red("--distributionIdToCopy is required and must be a string"));
     process.exit(1);
   }
 
   if ((copyRefererName !== undefined && typeof copyRefererName !== "string") || typeof copyComment === "boolean") {
-    console.error(chalk.red.bold("✗ Error:"), chalk.red("--copyRefererName must be a string"));
+    console.error(chalk.red.bold("❌ Error:"), chalk.red("--copyRefererName must be a string"));
     process.exit(1);
   }
 
   if ((copyComment !== undefined && typeof copyComment !== "string") || typeof copyComment === "boolean") {
-    console.error(chalk.red.bold("✗ Error:"), chalk.red("--copyComment must be a string"));
+    console.error(chalk.red.bold("❌ Error:"), chalk.red("--copyComment must be a string"));
     process.exit(1);
   }
 
   if ((debug !== undefined && typeof debug !== "boolean") || typeof debug === "string") {
-    console.error(chalk.red.bold("✗ Error:"), chalk.red("--debug must be a boolean"));
+    console.error(chalk.red.bold("❌ Error:"), chalk.red("--debug must be a boolean"));
     process.exit(1);
   }
 
@@ -102,14 +102,14 @@ const main = async () => {
 
   const originClient = new CloudFrontClient({
     region: "us-east-1",
-    maxAttempts: 100,
+    maxAttempts: 5,
     retryMode: "adaptive",
     credentials: fromIni({ profile: originProfileName }),
   });
 
   const destinationClient = new CloudFrontClient({
     region: "us-east-1",
-    maxAttempts: 100,
+    maxAttempts: 5,
     retryMode: "adaptive",
     credentials: fromIni({ profile: destinationProfileName }),
   });
@@ -134,7 +134,7 @@ const main = async () => {
     getOriginRequestPolicies({ client: destinationClient }),
   ]);
 
-  console.log(chalk.green.bold("✓ Configuration fetched successfully\n"));
+  console.log(chalk.green.bold("✅ Configuration fetched successfully\n"));
 
   // Initialize debug report
   const debugReport: DebugReport = {
@@ -180,7 +180,7 @@ const main = async () => {
   delete newDistributionConfig.Aliases.Items;
   newDistributionConfig.ViewerCertificate = { CloudFrontDefaultCertificate: true };
 
-  console.log(chalk.green.bold("✓ Distribution configuration prepared"));
+  console.log(chalk.green.bold("✅ Distribution configuration prepared"));
   console.log(chalk.blue("📝 New CallerReference:"), chalk.white(newDistributionConfig.CallerReference));
   console.log(chalk.blue("💬 New comment:"), chalk.white(newComment), "\n");
 
@@ -218,7 +218,7 @@ const main = async () => {
 };
 
 main().catch((error) => {
-  console.error(chalk.red.bold("\n✗ FATAL ERROR:"));
+  console.error(chalk.red.bold("\n❌ FATAL ERROR:"));
   console.error(chalk.red(error));
   process.exit(1);
 });
