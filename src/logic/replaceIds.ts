@@ -20,6 +20,7 @@ import {
   createResponseHeadersPolicy,
 } from "../aws/createPolicies";
 import { DebugReport } from "../cli";
+import chalk from "./mini-chalk";
 
 interface IreplaceIds {
   distributionConfig: DistributionConfig,
@@ -100,7 +101,7 @@ async function replacePolicyId<
   // Si no hay policyId o está vacío, retornar undefined
   if (!policyId || policyId.trim() === '') {
     if (debug) {
-      console.log(`[DEBUG] ⊘ No ${policyTypeLabel} policy ID provided - skipping`);
+      console.log(chalk.dim(`  ⊘ No ${policyTypeLabel} policy ID provided - skipping`));
     }
     return undefined;
   }
@@ -109,7 +110,7 @@ async function replacePolicyId<
   let policyConfig = originPoliciesStorage.get(policyId);
   if (!policyConfig) {
     if (debug) {
-      console.log(`[DEBUG] ⊘ ${policyTypeLabel} policy ID "${policyId}" not found in source - likely an AWS managed policy, keeping original ID`);
+      console.log(chalk.dim(`  ⊘ ${policyTypeLabel} policy ${chalk.yellow(policyId)} not found in source - likely an AWS managed policy, keeping original ID`));
     }
     return policyId; // Retorna el ID original para políticas manejadas por AWS
   }
@@ -120,8 +121,8 @@ async function replacePolicyId<
   const existingId = destinationNameToId.get(policyName);
   if (existingId) {
     if (debug) {
-      console.log(`[DEBUG] ✓ ${policyTypeLabel} policy "${policyName}" already exists in destination`);
-      console.log(`[DEBUG]   Source ID: ${policyId} → Destination ID: ${existingId}`);
+      console.log(chalk.green(`  ✓ ${policyTypeLabel} policy`) + chalk.cyan(` "${policyName}"`) + chalk.green(` already exists`));
+      console.log(chalk.dim(`    ${policyId} → ${existingId}`));
       if (debugReport) {
         debugReport.policyIdMappings[policyId] = existingId;
       }
@@ -133,7 +134,7 @@ async function replacePolicyId<
   const pendingCreation = pendingCreations.get(policyName);
   if (pendingCreation) {
     if (debug) {
-      console.log(`[DEBUG] ⏳ Waiting for pending creation of ${policyTypeLabel} policy: "${policyName}"`);
+      console.log(chalk.yellow(`  ⏳ Waiting for pending creation: `) + chalk.cyan(`"${policyName}"`));
     }
     return pendingCreation;
   }
@@ -141,12 +142,12 @@ async function replacePolicyId<
   if (debug) {
     const mockNewId = `DEBUG_${policyType}_${policyId}`;
 
-    console.log(`\n[DEBUG] ========================================`);
-    console.log(`[DEBUG] ➕ Creating new ${policyTypeLabel} policy`);
-    console.log(`[DEBUG]   Name: ${policyName}`);
-    console.log(`[DEBUG]   Source ID: ${policyId}`);
-    console.log(`[DEBUG]   Mock Destination ID: ${mockNewId}`);
-    console.log(`[DEBUG] ========================================\n`);
+    console.log(chalk.magenta(`\n  ════════════════════════════════════════`));
+    console.log(chalk.magenta(`  ➕ Creating new ${policyTypeLabel} policy`));
+    console.log(chalk.cyan(`     Name: `) + chalk.bold(policyName));
+    console.log(chalk.dim(`     Source ID: ${policyId}`));
+    console.log(chalk.dim(`     Mock Destination ID: ${mockNewId}`));
+    console.log(chalk.magenta(`  ════════════════════════════════════════\n`));
 
     if (debugReport) {
       debugReport.policyIdMappings[policyId] = mockNewId;
@@ -203,10 +204,10 @@ export const replaceIds = async ({
   // Guardar config original en debug report
   if (debug && debugReport) {
     debugReport.distributionConfig.original = distributionConfig;
-    console.log('\n╔════════════════════════════════════════════╗');
-    console.log('║  DEBUG MODE - Policy ID Replacement        ║');
-    console.log('║  No real changes will be made to AWS       ║');
-    console.log('╚════════════════════════════════════════════╝\n');
+    console.log(chalk.blue.bold('\n╔════════════════════════════════════════════╗'));
+    console.log(chalk.blue.bold('║') + chalk.white.bold('  DEBUG MODE - Policy ID Replacement        ') + chalk.blue.bold('║'));
+    console.log(chalk.blue.bold('║') + chalk.dim('  No real changes will be made to AWS       ') + chalk.blue.bold('║'));
+    console.log(chalk.blue.bold('╚════════════════════════════════════════════╝\n'));
   }
 
   // Caches para policies del origen
@@ -222,66 +223,66 @@ export const replaceIds = async ({
 
   // Popular map con policies de la distribución origen
   if (debug) {
-    console.log('[DEBUG] 📥 Loading policies from source distribution...\n');
+    console.log(chalk.cyan.bold('📥 Loading policies from source distribution...\n'));
   }
 
   for (const item of originCachePolicies.Items || []) {
     const policy = item.CachePolicy;
     originCachePoliciesStorage.set(policy.Id, policy.CachePolicyConfig);
     if (debug)
-      console.log(`[DEBUG]   • Cache Policy: "${policy.CachePolicyConfig.Name}" (${policy.Id})`);
+      console.log(chalk.dim('   • ') + chalk.white(`Cache Policy: `) + chalk.cyan(`"${policy.CachePolicyConfig.Name}"`) + chalk.dim(` (${policy.Id})`));
   }
 
   for (const item of originResponseHeadersPolicies.Items || []) {
     const policy = item.ResponseHeadersPolicy;
     originResponseHeadersPoliciesStorage.set(policy.Id, policy.ResponseHeadersPolicyConfig);
     if (debug)
-      console.log(`[DEBUG]   • Response Headers Policy: "${policy.ResponseHeadersPolicyConfig.Name}" (${policy.Id})`);
+      console.log(chalk.dim('   • ') + chalk.white(`Response Headers Policy: `) + chalk.cyan(`"${policy.ResponseHeadersPolicyConfig.Name}"`) + chalk.dim(` (${policy.Id})`));
   }
 
   for (const item of originOriginRequestPolicies.Items || []) {
     const policy = item.OriginRequestPolicy;
     originOriginRequestPoliciesStorage.set(policy.Id, policy.OriginRequestPolicyConfig);
     if (debug)
-      console.log(`[DEBUG]   • Origin Request Policy: "${policy.OriginRequestPolicyConfig.Name}" (${policy.Id})`);
+      console.log(chalk.dim('   • ') + chalk.white(`Origin Request Policy: `) + chalk.cyan(`"${policy.OriginRequestPolicyConfig.Name}"`) + chalk.dim(` (${policy.Id})`));
   }
 
   if (debug) {
-    console.log(`\n[DEBUG] 📊 Source distribution summary:`);
-    console.log(`[DEBUG]   - ${originCachePolicies.Items?.length || 0} Cache policies`);
-    console.log(`[DEBUG]   - ${originResponseHeadersPolicies.Items?.length || 0} Response Headers policies`);
-    console.log(`[DEBUG]   - ${originOriginRequestPolicies.Items?.length || 0} Origin Request policies\n`);
+    console.log(chalk.yellow(`\n📊 Source distribution summary:`));
+    console.log(chalk.dim(`   - ${originCachePolicies.Items?.length || 0} Cache policies`));
+    console.log(chalk.dim(`   - ${originResponseHeadersPolicies.Items?.length || 0} Response Headers policies`));
+    console.log(chalk.dim(`   - ${originOriginRequestPolicies.Items?.length || 0} Origin Request policies\n`));
   }
 
   // Popular map con policies existentes en destino
   if (debug) {
-    console.log('[DEBUG] 📥 Loading existing policies from destination account...\n');
+    console.log(chalk.cyan.bold('📥 Loading existing policies from destination account...\n'));
   }
 
   for (const item of destinationCachePolicies.Items || []) {
     const policy = item.CachePolicy;
     destinationNameToId.set(policy.CachePolicyConfig.Name, policy.Id);
     if (debug)
-      console.log(`[DEBUG]   • Cache Policy: "${policy.CachePolicyConfig.Name}" (${policy.Id})`);
+      console.log(chalk.dim('   • ') + chalk.white(`Cache Policy: `) + chalk.cyan(`"${policy.CachePolicyConfig.Name}"`) + chalk.dim(` (${policy.Id})`));
   }
   for (const item of destinationResponseHeadersPolicies.Items || []) {
     const policy = item.ResponseHeadersPolicy;
     destinationNameToId.set(policy.ResponseHeadersPolicyConfig.Name, policy.Id);
     if (debug)
-      console.log(`[DEBUG]   • Response Headers Policy: "${policy.ResponseHeadersPolicyConfig.Name}" (${policy.Id})`);
+      console.log(chalk.dim('   • ') + chalk.white(`Response Headers Policy: `) + chalk.cyan(`"${policy.ResponseHeadersPolicyConfig.Name}"`) + chalk.dim(` (${policy.Id})`));
   }
   for (const item of destinationOriginRequestPolicies.Items || []) {
     const policy = item.OriginRequestPolicy;
     destinationNameToId.set(policy.OriginRequestPolicyConfig.Name, policy.Id);
     if (debug)
-      console.log(`[DEBUG]   • Origin Request Policy: "${policy.OriginRequestPolicyConfig.Name}" (${policy.Id})`);
+      console.log(chalk.dim('   • ') + chalk.white(`Origin Request Policy: `) + chalk.cyan(`"${policy.OriginRequestPolicyConfig.Name}"`) + chalk.dim(` (${policy.Id})`));
   }
 
   if (debug) {
-    console.log(`\n[DEBUG] 📊 Destination account summary:`);
-    console.log(`[DEBUG]   - ${destinationCachePolicies.Items?.length || 0} Cache policies`);
-    console.log(`[DEBUG]   - ${destinationResponseHeadersPolicies.Items?.length || 0} Response Headers policies`);
-    console.log(`[DEBUG]   - ${destinationOriginRequestPolicies.Items?.length || 0} Origin Request policies\n`);
+    console.log(chalk.yellow(`\n📊 Destination account summary:`));
+    console.log(chalk.dim(`   - ${destinationCachePolicies.Items?.length || 0} Cache policies`));
+    console.log(chalk.dim(`   - ${destinationResponseHeadersPolicies.Items?.length || 0} Response Headers policies`));
+    console.log(chalk.dim(`   - ${destinationOriginRequestPolicies.Items?.length || 0} Origin Request policies\n`));
   }
 
   // Crear array de promises para todas las operaciones
@@ -291,7 +292,7 @@ export const replaceIds = async ({
   const defaultBehavior = distributionConfig.DefaultCacheBehavior;
 
   if (debug) {
-    console.log('[DEBUG] 🔄 Processing DefaultCacheBehavior...\n');
+    console.log(chalk.green.bold('🔄 Processing DefaultCacheBehavior...\n'));
   }
 
   // Cache policies
@@ -340,12 +341,12 @@ export const replaceIds = async ({
   // Reemplazar IDs en CacheBehaviors adicionales
   if (distributionConfig.CacheBehaviors?.Items) {
     if (debug) {
-      console.log(`[DEBUG] 🔄 Processing ${distributionConfig.CacheBehaviors.Items.length} additional CacheBehaviors...\n`);
+      console.log(chalk.green.bold(`🔄 Processing ${distributionConfig.CacheBehaviors.Items.length} additional CacheBehaviors...\n`));
     }
 
     for (const [index, behavior] of distributionConfig.CacheBehaviors.Items.entries()) {
       if (debug) {
-        console.log(`[DEBUG] 📍 CacheBehavior #${index + 1} - PathPattern: "${behavior.PathPattern}"\n`);
+        console.log(chalk.magenta(`📍 CacheBehavior #${index + 1}`) + chalk.dim(` - PathPattern: `) + chalk.cyan(`"${behavior.PathPattern}"`));
       }
 
       promises.push(
@@ -399,14 +400,14 @@ export const replaceIds = async ({
   if (debug && debugReport) {
     debugReport.distributionConfig.modified = JSON.parse(JSON.stringify(distributionConfig));
 
-    console.log('\n╔════════════════════════════════════════════╗');
-    console.log('║  SUMMARY - Policy Replacement              ║');
-    console.log('╚════════════════════════════════════════════╝');
-    console.log(`[DEBUG] ➕ Policies to create:`);
-    console.log(`[DEBUG]   - Cache: ${debugReport.policiesToCreate.cachePolicies.length}`);
-    console.log(`[DEBUG]   - Response Headers: ${debugReport.policiesToCreate.responseHeadersPolicies.length}`);
-    console.log(`[DEBUG]   - Origin Request: ${debugReport.policiesToCreate.originRequestPolicies.length}`);
-    console.log(`[DEBUG] 🔗 Total ID mappings: ${Object.keys(debugReport.policyIdMappings).length}\n`);
+    console.log(chalk.blue.bold('\n╔════════════════════════════════════════════╗'));
+    console.log(chalk.blue.bold('║') + chalk.white.bold('  SUMMARY - Policy Replacement              ') + chalk.blue.bold('║'));
+    console.log(chalk.blue.bold('╚════════════════════════════════════════════╝'));
+    console.log(chalk.yellow('➕ Policies to create:'));
+    console.log(chalk.dim(`   - Cache: `) + chalk.white(debugReport.policiesToCreate.cachePolicies.length.toString()));
+    console.log(chalk.dim(`   - Response Headers: `) + chalk.white(debugReport.policiesToCreate.responseHeadersPolicies.length.toString()));
+    console.log(chalk.dim(`   - Origin Request: `) + chalk.white(debugReport.policiesToCreate.originRequestPolicies.length.toString()));
+    console.log(chalk.green(`🔗 Total ID mappings: `) + chalk.white.bold(Object.keys(debugReport.policyIdMappings).length.toString()) + '\n');
   }
 
   return distributionConfig;
