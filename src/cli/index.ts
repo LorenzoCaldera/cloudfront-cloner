@@ -16,6 +16,7 @@ import {
 import { replaceCacheBehaviors } from "../logic/replaceCacheBehaviors";
 import { writeFileSync } from "fs";
 import chalk from "../utils/mini-chalk";
+import { getUserInput } from "../utils/getUserInput";
 
 export interface DebugReport {
   summary: {
@@ -79,7 +80,7 @@ const main = async () => {
     process.exit(1);
   }
 
-  if ((copyRefererName !== undefined && typeof copyRefererName !== "string") || typeof copyComment === "boolean") {
+  if ((copyRefererName !== undefined && typeof copyRefererName !== "string") || typeof copyRefererName === "boolean") {
     console.error(chalk.red.bold("❌ Error:"), chalk.red("--copyRefererName must be a string"));
     process.exit(1);
   }
@@ -171,8 +172,40 @@ const main = async () => {
     destinationOriginRequestPolicies,
   });
 
-  const newRefererName = copyRefererName ?? `copyOf_${distributionIdToCopy}`;
-  const newComment = copyComment ?? 'COPY: ' + newDistributionConfig.Comment;
+  // Ask the user if they want to change the CallerReference and Comment
+  let newRefererName: string;
+  if (!copyRefererName) {
+    newRefererName = await getUserInput({
+      question: "Enter the new referer name",
+      defaultValue: `copyOf_${distributionIdToCopy}`,
+      validate: (name: string) => {
+        if (!name.trim())
+          return { isValid: false, reason: "The new referer name cannot be empty", };
+
+        if (name === distributionIdToCopy)
+          return { isValid: false, reason: "The new referer name cannot be the same as the distribution ID to copy", };
+
+        return { isValid: true };
+      },
+    });
+  } else newRefererName = copyRefererName;
+
+  let newComment: string;
+  if (!copyComment) {
+    newComment = await getUserInput({
+      question: "Enter the distribution comment",
+      defaultValue: `COPY: ${newDistributionConfig.Comment}`,
+      validate: (name: string) => {
+        if (!name.trim())
+          return { isValid: false, reason: "Distribution comment cannot be empty", };
+
+        if (name === newDistributionConfig.Comment)
+          return { isValid: false, reason: "Distribution comment cannot be the same as the previous distribution comment", };
+
+        return { isValid: true };
+      },
+    });
+  } else newComment = copyComment;
 
   newDistributionConfig.CallerReference = newRefererName + '_' + new Date().getTime();
   newDistributionConfig.Comment = newComment;
