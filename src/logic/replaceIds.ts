@@ -1,5 +1,4 @@
 import {
-  CachePolicy,
   CachePolicyConfig,
   CachePolicyList,
   CloudFrontClient,
@@ -7,10 +6,8 @@ import {
   CreateOriginRequestPolicyResult,
   CreateResponseHeadersPolicyResult,
   DistributionConfig,
-  OriginRequestPolicy,
   OriginRequestPolicyConfig,
   OriginRequestPolicyList,
-  ResponseHeadersPolicy,
   ResponseHeadersPolicyConfig,
   ResponseHeadersPolicyList,
 } from "@aws-sdk/client-cloudfront"
