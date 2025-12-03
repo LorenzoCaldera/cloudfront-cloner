@@ -13,7 +13,7 @@ import {
   getOriginRequestPolicies,
   getResponseHeadersPolicies
 } from "../aws/getPolicies";
-import { replaceCacheBehaviors } from "../logic/replaceIds";
+import { replaceCacheBehaviors } from "../logic/replaceCacheBehaviors";
 import { writeFileSync } from "fs";
 import chalk from "../utils/mini-chalk";
 
