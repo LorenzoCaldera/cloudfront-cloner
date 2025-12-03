@@ -15,6 +15,7 @@ import {
 } from "../aws/getPolicies";
 import { replaceIds } from "../logic/replaceIds";
 import { writeFileSync } from "fs";
+import chalk from "../logic/mini-chalk";
 
 export interface DebugReport {
   summary: {
@@ -44,8 +45,8 @@ export interface DebugReport {
     }>;
   };
   distributionConfig: {
-    original: DistributionConfig;
-    modified?: DistributionConfig;
+    original: DistributionConfig | null;
+    modified: DistributionConfig | null;
   };
   policyIdMappings: Record<string, string>;
 }
@@ -62,35 +63,42 @@ const main = async () => {
     debug
   } = parsedArgs;
 
+  // Validation
   if (!originProfileName || typeof originProfileName !== "string") {
-    console.error("Error: --originProfileName is required and must be a string.");
+    console.error(chalk.red.bold("✗ Error:"), chalk.red("--originProfileName is required and must be a string"));
     process.exit(1);
   }
 
   if (!destinationProfileName || typeof destinationProfileName !== "string") {
-    console.error("Error: --destinationProfileName is required and must be a string.");
+    console.error(chalk.red.bold("✗ Error:"), chalk.red("--destinationProfileName is required and must be a string"));
     process.exit(1);
   }
 
   if (!distributionIdToCopy || typeof distributionIdToCopy !== "string") {
-    console.error("Error: --distributionIdToCopy is required and must be a string.");
+    console.error(chalk.red.bold("✗ Error:"), chalk.red("--distributionIdToCopy is required and must be a string"));
     process.exit(1);
   }
 
   if ((copyRefererName !== undefined && typeof copyRefererName !== "string") || typeof copyComment === "boolean") {
-    console.error("Error: --copyRefererName must be a string.");
+    console.error(chalk.red.bold("✗ Error:"), chalk.red("--copyRefererName must be a string"));
     process.exit(1);
   }
 
   if ((copyComment !== undefined && typeof copyComment !== "string") || typeof copyComment === "boolean") {
-    console.error("Error: --copyComment must be a string.");
+    console.error(chalk.red.bold("✗ Error:"), chalk.red("--copyComment must be a string"));
     process.exit(1);
   }
 
   if ((debug !== undefined && typeof debug !== "boolean") || typeof debug === "string") {
-    console.error("Error: --debug must be a boolean.");
+    console.error(chalk.red.bold("✗ Error:"), chalk.red("--debug must be a boolean"));
     process.exit(1);
   }
+
+  console.log(chalk.cyan.bold("\n🚀 Starting CloudFront distribution copy"));
+  console.log(chalk.blue("📋 Source distribution:"), chalk.white.bold(distributionIdToCopy));
+  console.log(chalk.blue("📁 Source profile:"), chalk.white(originProfileName));
+  console.log(chalk.blue("📁 Destination profile:"), chalk.white(destinationProfileName));
+  if (debug) console.log(chalk.magenta.bold("🐛 Debug mode enabled\n"));
 
   const originClient = new CloudFrontClient({
     region: "us-east-1",
@@ -98,12 +106,15 @@ const main = async () => {
     retryMode: "adaptive",
     credentials: fromIni({ profile: originProfileName }),
   });
+
   const destinationClient = new CloudFrontClient({
     region: "us-east-1",
     maxAttempts: 100,
     retryMode: "adaptive",
     credentials: fromIni({ profile: destinationProfileName }),
   });
+
+  console.log(chalk.yellow("⏳ Fetching configuration and policies..."));
 
   const [
     originDistributionConfig,
@@ -122,6 +133,8 @@ const main = async () => {
     getOriginRequestPolicies({ client: originClient }),
     getOriginRequestPolicies({ client: destinationClient }),
   ]);
+
+  console.log(chalk.green.bold("✓ Configuration fetched successfully\n"));
 
   // Initialize debug report
   const debugReport: DebugReport = {
@@ -143,6 +156,8 @@ const main = async () => {
     policyIdMappings: {}
   };
 
+  console.log(chalk.cyan("🔄 Processing policies and replacing IDs..."));
+
   const newDistributionConfig = await replaceIds({
     distributionConfig: { ...originDistributionConfig.DistributionConfig },
     debugReport,
@@ -158,38 +173,52 @@ const main = async () => {
 
   const newRefererName = copyRefererName ?? `copyOf_${distributionIdToCopy}`;
   const newComment = copyComment ?? 'COPY: ' + newDistributionConfig.Comment;
+
   newDistributionConfig.CallerReference = newRefererName + '_' + new Date().getTime();
   newDistributionConfig.Comment = newComment;
   newDistributionConfig.Aliases.Quantity = 0;
   delete newDistributionConfig.Aliases.Items;
   newDistributionConfig.ViewerCertificate = { CloudFrontDefaultCertificate: true };
 
+  console.log(chalk.green.bold("✓ Distribution configuration prepared"));
+  console.log(chalk.blue("📝 New CallerReference:"), chalk.white(newDistributionConfig.CallerReference));
+  console.log(chalk.blue("💬 New comment:"), chalk.white(newComment), "\n");
+
   // Save debug report if in debug mode
   if (debug) {
     debugReport.distributionConfig.original = originDistributionConfig.DistributionConfig;
     debugReport.distributionConfig.modified = newDistributionConfig;
+
+    const totalPolicies =
+      debugReport.policiesToCreate.cachePolicies.length +
+      debugReport.policiesToCreate.responseHeadersPolicies.length +
+      debugReport.policiesToCreate.originRequestPolicies.length;
 
     writeFileSync(
       'debug-report.json',
       JSON.stringify(debugReport, null, 2),
       'utf-8'
     );
-    console.log('\n========================================');
-    console.log('[DEBUG] Debug report saved to debug-report.json');
-    console.log('========================================');
-    console.log(`[DEBUG] Total policies to create: ${debugReport.policiesToCreate.cachePolicies.length +
-      debugReport.policiesToCreate.responseHeadersPolicies.length +
-      debugReport.policiesToCreate.originRequestPolicies.length
-      }`);
-    console.log(`[DEBUG]   - Cache Policies: ${debugReport.policiesToCreate.cachePolicies.length}`);
-    console.log(`[DEBUG]   - Response Headers Policies: ${debugReport.policiesToCreate.responseHeadersPolicies.length}`);
-    console.log(`[DEBUG]   - Origin Request Policies: ${debugReport.policiesToCreate.originRequestPolicies.length}`);
-    console.log(`[DEBUG] Total policy ID mappings: ${Object.keys(debugReport.policyIdMappings).length}`);
-    console.log('========================================\n');
+
+    console.log(chalk.magenta.bold("╔═══════════════════════════════════════════════╗"));
+    console.log(chalk.magenta.bold("║            DEBUG REPORT GENERATED             ║"));
+    console.log(chalk.magenta.bold("╚═══════════════════════════════════════════════╝"));
+    console.log(chalk.blue("📄 File:"), chalk.white.bold("debug-report.json"));
+    console.log(chalk.blue("⏰ Timestamp:"), chalk.white(debugReport.summary.timestamp), "\n");
+    console.log(chalk.cyan.bold("📊 POLICIES TO CREATE:"));
+    console.log(chalk.yellow("   Total:"), chalk.white.bold(`${totalPolicies}`));
+    console.log(chalk.dim("   ├─"), chalk.blue("Cache Policies:"), chalk.white(`${debugReport.policiesToCreate.cachePolicies.length}`));
+    console.log(chalk.dim("   ├─"), chalk.blue("Response Headers Policies:"), chalk.white(`${debugReport.policiesToCreate.responseHeadersPolicies.length}`));
+    console.log(chalk.dim("   └─"), chalk.blue("Origin Request Policies:"), chalk.white(`${debugReport.policiesToCreate.originRequestPolicies.length}`), "\n");
+    console.log(chalk.cyan("🔗 ID Mappings:"), chalk.white.bold(`${Object.keys(debugReport.policyIdMappings).length}`));
+    console.log(chalk.magenta("═══════════════════════════════════════════════\n"));
   }
+
+  console.log(chalk.green.bold("🎉 Process completed successfully"));
 };
 
 main().catch((error) => {
-  console.error(error);
+  console.error(chalk.red.bold("\n✗ FATAL ERROR:"));
+  console.error(chalk.red(error));
   process.exit(1);
 });

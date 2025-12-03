@@ -399,15 +399,6 @@ export const replaceIds = async ({
   // Guardar config modificada en debug report
   if (debug && debugReport) {
     debugReport.distributionConfig.modified = JSON.parse(JSON.stringify(distributionConfig));
-
-    console.log(chalk.blue.bold('\n╔════════════════════════════════════════════╗'));
-    console.log(chalk.blue.bold('║') + chalk.white.bold('  SUMMARY - Policy Replacement              ') + chalk.blue.bold('║'));
-    console.log(chalk.blue.bold('╚════════════════════════════════════════════╝'));
-    console.log(chalk.yellow('➕ Policies to create:'));
-    console.log(chalk.dim(`   - Cache: `) + chalk.white(debugReport.policiesToCreate.cachePolicies.length.toString()));
-    console.log(chalk.dim(`   - Response Headers: `) + chalk.white(debugReport.policiesToCreate.responseHeadersPolicies.length.toString()));
-    console.log(chalk.dim(`   - Origin Request: `) + chalk.white(debugReport.policiesToCreate.originRequestPolicies.length.toString()));
-    console.log(chalk.green(`🔗 Total ID mappings: `) + chalk.white.bold(Object.keys(debugReport.policyIdMappings).length.toString()) + '\n');
   }
 
   return distributionConfig;
