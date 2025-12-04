@@ -86,7 +86,11 @@ export const replaceCacheBehaviors = async ({
   const originCachePoliciesStorage = new Map<string, CachePolicyConfig>();
   const originResponseHeadersPoliciesStorage = new Map<string, ResponseHeadersPolicyConfig>();
   const originOriginRequestPoliciesStorage = new Map<string, OriginRequestPolicyConfig>();
-  const destinationNameToId = new Map<string, string>();
+
+  // Maps para policies existentes en destino
+  const destinationCacheNameToId = new Map<string, string>();
+  const destinationResponseHeadersNameToId = new Map<string, string>();
+  const destinationOriginRequestNameToId = new Map<string, string>();
 
   // Maps para rastrear creaciones pendientes (evita duplicados)
   const pendingCachePolicyCreations = new Map<string, Promise<string>>();
@@ -133,19 +137,19 @@ export const replaceCacheBehaviors = async ({
 
   for (const item of destinationCachePolicies.Items || []) {
     const policy = item.CachePolicy;
-    destinationNameToId.set(policy.CachePolicyConfig.Name, policy.Id);
+    destinationCacheNameToId.set(policy.CachePolicyConfig.Name, policy.Id);
     if (debug)
       console.log(chalk.dim('   • ') + chalk.white(`Cache Policy: `) + chalk.cyan(`"${policy.CachePolicyConfig.Name}"`) + chalk.dim(` (${policy.Id})`));
   }
   for (const item of destinationResponseHeadersPolicies.Items || []) {
     const policy = item.ResponseHeadersPolicy;
-    destinationNameToId.set(policy.ResponseHeadersPolicyConfig.Name, policy.Id);
+    destinationResponseHeadersNameToId.set(policy.ResponseHeadersPolicyConfig.Name, policy.Id);
     if (debug)
       console.log(chalk.dim('   • ') + chalk.white(`Response Headers Policy: `) + chalk.cyan(`"${policy.ResponseHeadersPolicyConfig.Name}"`) + chalk.dim(` (${policy.Id})`));
   }
   for (const item of destinationOriginRequestPolicies.Items || []) {
     const policy = item.OriginRequestPolicy;
-    destinationNameToId.set(policy.OriginRequestPolicyConfig.Name, policy.Id);
+    destinationOriginRequestNameToId.set(policy.OriginRequestPolicyConfig.Name, policy.Id);
     if (debug)
       console.log(chalk.dim('   • ') + chalk.white(`Origin Request Policy: `) + chalk.cyan(`"${policy.OriginRequestPolicyConfig.Name}"`) + chalk.dim(` (${policy.Id})`));
   }
@@ -174,7 +178,7 @@ export const replaceCacheBehaviors = async ({
       cachePolicyHandler,
       destinationClient,
       originCachePoliciesStorage,
-      destinationNameToId,
+      destinationCacheNameToId,
       pendingCachePolicyCreations,
       debug,
       debugReport,
@@ -188,7 +192,7 @@ export const replaceCacheBehaviors = async ({
       responseHeadersPolicyHandler,
       destinationClient,
       originResponseHeadersPoliciesStorage,
-      destinationNameToId,
+      destinationResponseHeadersNameToId,
       pendingResponseHeadersCreations,
       debug,
       debugReport,
@@ -202,7 +206,7 @@ export const replaceCacheBehaviors = async ({
       originRequestPolicyHandler,
       destinationClient,
       originOriginRequestPoliciesStorage,
-      destinationNameToId,
+      destinationOriginRequestNameToId,
       pendingOriginRequestCreations,
       debug,
       debugReport,
@@ -230,7 +234,7 @@ export const replaceCacheBehaviors = async ({
           cachePolicyHandler,
           destinationClient,
           originCachePoliciesStorage,
-          destinationNameToId,
+          destinationCacheNameToId,
           pendingCachePolicyCreations,
           debug,
           debugReport,
@@ -244,7 +248,7 @@ export const replaceCacheBehaviors = async ({
           responseHeadersPolicyHandler,
           destinationClient,
           originResponseHeadersPoliciesStorage,
-          destinationNameToId,
+          destinationResponseHeadersNameToId,
           pendingResponseHeadersCreations,
           debug,
           debugReport,
@@ -258,7 +262,7 @@ export const replaceCacheBehaviors = async ({
           originRequestPolicyHandler,
           destinationClient,
           originOriginRequestPoliciesStorage,
-          destinationNameToId,
+          destinationOriginRequestNameToId,
           pendingOriginRequestCreations,
           debug,
           debugReport,
