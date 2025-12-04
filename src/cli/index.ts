@@ -212,6 +212,7 @@ const main = async () => {
   newDistributionConfig.Aliases.Quantity = 0;
   delete newDistributionConfig.Aliases.Items;
   newDistributionConfig.ViewerCertificate = { CloudFrontDefaultCertificate: true };
+  delete newDistributionConfig.WebACLId;
 
   console.log(chalk.green.bold("✅ Distribution configuration prepared"));
   console.log(chalk.blue("📝 New CallerReference:"), chalk.white(newDistributionConfig.CallerReference));
