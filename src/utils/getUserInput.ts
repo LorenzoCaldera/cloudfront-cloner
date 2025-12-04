@@ -26,8 +26,8 @@ export async function getUserInput<T = string>({
 
   while (true) {
     const prompt = defaultValue
-      ? `${question} ${chalk.dim(`(Press Enter to use default: ${defaultValue})`)}: `
-      : `${question}: `;
+      ? `\n${question} ${chalk.dim(`(Press Enter to use default: ${defaultValue})`)}: `
+      : `\n${question}: `;
 
     const rawInput = await readlineInterface.question(prompt);
 
