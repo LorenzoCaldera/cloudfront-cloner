@@ -19,7 +19,7 @@ import {
 import { DebugReport } from "../../cli";
 import chalk from "../../utils/mini-chalk";
 import { PolicyHandler, replacePolicyId } from "./replacePolicyId";
-import { replaceLambdasARN } from "./replaceLambdasARN";
+import { replaceFunctionsARN } from "./replaceFunctionsARN";
 
 interface IreplaceIds {
   distributionConfig: DistributionConfig,
@@ -96,6 +96,9 @@ export const replaceCacheBehaviors = async ({
   const pendingCachePolicyCreations = new Map<string, Promise<string>>();
   const pendingResponseHeadersCreations = new Map<string, Promise<string>>();
   const pendingOriginRequestCreations = new Map<string, Promise<string>>();
+
+  // Map para rastrear reemplazos de Function ARN
+  const replaceFunctionsARNStorage = new Map<string, string>();
 
   // Popular map con policies de la distribución origen
   if (debug)
@@ -211,7 +214,7 @@ export const replaceCacheBehaviors = async ({
     ).then((id) => { defaultBehavior.OriginRequestPolicyId = id; })
   );
   // Lambda function associations
-  await replaceLambdasARN({ behavior: defaultBehavior, debug });
+  await replaceFunctionsARN({ behavior: defaultBehavior, debug, replaceFunctionsARNStorage });
 
   // Reemplazar IDs en CacheBehaviors adicionales
   if (distributionConfig.CacheBehaviors?.Items) {
@@ -265,7 +268,7 @@ export const replaceCacheBehaviors = async ({
         ).then((id) => { behavior.OriginRequestPolicyId = id; })
       );
       // Lambda function associations
-      await replaceLambdasARN({ behavior, debug });
+      await replaceFunctionsARN({ behavior, debug, replaceFunctionsARNStorage });
     }
   }
 
