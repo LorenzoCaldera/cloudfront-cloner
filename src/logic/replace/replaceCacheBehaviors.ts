@@ -101,66 +101,54 @@ export const replaceCacheBehaviors = async ({
   const replaceFunctionsARNStorage = new Map<string, string>();
 
   // Popular map con policies de la distribución origen
-  if (debug)
-    console.log(chalk.cyan.bold('📥 Policies from source distribution...\n'));
+  console.log(chalk.cyan.bold('📥 Policies from source distribution...\n'));
 
   for (const item of originCachePolicies.Items || []) {
     const policy = item.CachePolicy;
     originCachePoliciesStorage.set(policy.Id, policy.CachePolicyConfig);
-    if (debug)
-      console.log(chalk.dim('   • ') + chalk.white(`Cache Policy: `) + chalk.cyan(`"${policy.CachePolicyConfig.Name}"`) + chalk.dim(` (${policy.Id})`));
+    console.log(chalk.dim('   • ') + chalk.white(`Cache Policy: `) + chalk.cyan(`"${policy.CachePolicyConfig.Name}"`) + chalk.dim(` (${policy.Id})`));
   }
 
   for (const item of originResponseHeadersPolicies.Items || []) {
     const policy = item.ResponseHeadersPolicy;
     originResponseHeadersPoliciesStorage.set(policy.Id, policy.ResponseHeadersPolicyConfig);
-    if (debug)
-      console.log(chalk.dim('   • ') + chalk.white(`Response Headers Policy: `) + chalk.cyan(`"${policy.ResponseHeadersPolicyConfig.Name}"`) + chalk.dim(` (${policy.Id})`));
+    console.log(chalk.dim('   • ') + chalk.white(`Response Headers Policy: `) + chalk.cyan(`"${policy.ResponseHeadersPolicyConfig.Name}"`) + chalk.dim(` (${policy.Id})`));
   }
 
   for (const item of originOriginRequestPolicies.Items || []) {
     const policy = item.OriginRequestPolicy;
     originOriginRequestPoliciesStorage.set(policy.Id, policy.OriginRequestPolicyConfig);
-    if (debug)
-      console.log(chalk.dim('   • ') + chalk.white(`Origin Request Policy: `) + chalk.cyan(`"${policy.OriginRequestPolicyConfig.Name}"`) + chalk.dim(` (${policy.Id})`));
+    console.log(chalk.dim('   • ') + chalk.white(`Origin Request Policy: `) + chalk.cyan(`"${policy.OriginRequestPolicyConfig.Name}"`) + chalk.dim(` (${policy.Id})`));
   }
 
-  if (debug) {
-    console.log(chalk.yellow(`\n📊 Source distribution summary:`));
-    console.log(chalk.dim(`   - ${originCachePolicies.Items?.length || 0} Cache policies`));
-    console.log(chalk.dim(`   - ${originResponseHeadersPolicies.Items?.length || 0} Response Headers policies`));
-    console.log(chalk.dim(`   - ${originOriginRequestPolicies.Items?.length || 0} Origin Request policies\n`));
-  }
+  console.log(chalk.yellow(`\n📊 Source distribution summary:`));
+  console.log(chalk.dim(`   - ${originCachePolicies.Items?.length || 0} Cache policies`));
+  console.log(chalk.dim(`   - ${originResponseHeadersPolicies.Items?.length || 0} Response Headers policies`));
+  console.log(chalk.dim(`   - ${originOriginRequestPolicies.Items?.length || 0} Origin Request policies\n`));
 
   // Popular map con policies existentes en destino
-  if (debug)
-    console.log(chalk.cyan.bold('📥 Existing policies from destination account...\n'));
+  console.log(chalk.cyan.bold('📥 Existing policies from destination account...\n'));
 
   for (const item of destinationCachePolicies.Items || []) {
     const policy = item.CachePolicy;
     destinationCacheNameToId.set(policy.CachePolicyConfig.Name, policy.Id);
-    if (debug)
-      console.log(chalk.dim('   • ') + chalk.white(`Cache Policy: `) + chalk.cyan(`"${policy.CachePolicyConfig.Name}"`) + chalk.dim(` (${policy.Id})`));
+    console.log(chalk.dim('   • ') + chalk.white(`Cache Policy: `) + chalk.cyan(`"${policy.CachePolicyConfig.Name}"`) + chalk.dim(` (${policy.Id})`));
   }
   for (const item of destinationResponseHeadersPolicies.Items || []) {
     const policy = item.ResponseHeadersPolicy;
     destinationResponseHeadersNameToId.set(policy.ResponseHeadersPolicyConfig.Name, policy.Id);
-    if (debug)
-      console.log(chalk.dim('   • ') + chalk.white(`Response Headers Policy: `) + chalk.cyan(`"${policy.ResponseHeadersPolicyConfig.Name}"`) + chalk.dim(` (${policy.Id})`));
+    console.log(chalk.dim('   • ') + chalk.white(`Response Headers Policy: `) + chalk.cyan(`"${policy.ResponseHeadersPolicyConfig.Name}"`) + chalk.dim(` (${policy.Id})`));
   }
   for (const item of destinationOriginRequestPolicies.Items || []) {
     const policy = item.OriginRequestPolicy;
     destinationOriginRequestNameToId.set(policy.OriginRequestPolicyConfig.Name, policy.Id);
-    if (debug)
-      console.log(chalk.dim('   • ') + chalk.white(`Origin Request Policy: `) + chalk.cyan(`"${policy.OriginRequestPolicyConfig.Name}"`) + chalk.dim(` (${policy.Id})`));
+    console.log(chalk.dim('   • ') + chalk.white(`Origin Request Policy: `) + chalk.cyan(`"${policy.OriginRequestPolicyConfig.Name}"`) + chalk.dim(` (${policy.Id})`));
   }
 
-  if (debug) {
-    console.log(chalk.yellow(`\n📊 Destination account summary:`));
-    console.log(chalk.dim(`   - ${destinationCachePolicies.Items?.length || 0} Cache policies`));
-    console.log(chalk.dim(`   - ${destinationResponseHeadersPolicies.Items?.length || 0} Response Headers policies`));
-    console.log(chalk.dim(`   - ${destinationOriginRequestPolicies.Items?.length || 0} Origin Request policies\n`));
-  }
+  console.log(chalk.yellow(`\n📊 Destination account summary:`));
+  console.log(chalk.dim(`   - ${destinationCachePolicies.Items?.length || 0} Cache policies`));
+  console.log(chalk.dim(`   - ${destinationResponseHeadersPolicies.Items?.length || 0} Response Headers policies`));
+  console.log(chalk.dim(`   - ${destinationOriginRequestPolicies.Items?.length || 0} Origin Request policies\n`));
 
   // Crear array de promises para todas las operaciones
   const promises: Promise<void>[] = [];
@@ -168,8 +156,7 @@ export const replaceCacheBehaviors = async ({
   // Reemplazar IDs en DefaultCacheBehavior
   const defaultBehavior = distributionConfig.DefaultCacheBehavior;
 
-  if (debug)
-    console.log(chalk.green.bold('🔄 Processing DefaultCacheBehavior...\n'));
+  console.log(chalk.green.bold('🔄 Processing DefaultCacheBehavior...\n'));
 
   // Cache policies
   promises.push(
@@ -214,16 +201,14 @@ export const replaceCacheBehaviors = async ({
     ).then((id) => { defaultBehavior.OriginRequestPolicyId = id; })
   );
   // Lambda function associations
-  await replaceFunctionsARN({ behavior: defaultBehavior, debug, replaceFunctionsARNStorage });
+  await replaceFunctionsARN({ behavior: defaultBehavior, replaceFunctionsARNStorage });
 
   // Reemplazar IDs en CacheBehaviors adicionales
   if (distributionConfig.CacheBehaviors?.Items) {
-    if (debug)
-      console.log(chalk.green.bold(`🔄 Processing ${distributionConfig.CacheBehaviors.Items.length} additional CacheBehaviors...\n`));
+    console.log(chalk.green.bold(`🔄 Processing ${distributionConfig.CacheBehaviors.Items.length} additional CacheBehaviors...\n`));
 
     for (const [index, behavior] of distributionConfig.CacheBehaviors.Items.entries()) {
-      if (debug)
-        console.log(chalk.magenta.bold(`📍 CacheBehavior #${index + 1}`) + chalk.dim(` - PathPattern: `) + chalk.cyan(`"${behavior.PathPattern}"`));
+      console.log(chalk.magenta.bold(`📍 CacheBehavior #${index + 1}`) + chalk.dim(` - PathPattern: `) + chalk.cyan(`"${behavior.PathPattern}"`));
 
       // Cache policies
       promises.push(
@@ -268,16 +253,11 @@ export const replaceCacheBehaviors = async ({
         ).then((id) => { behavior.OriginRequestPolicyId = id; })
       );
       // Lambda function associations
-      await replaceFunctionsARN({ behavior, debug, replaceFunctionsARNStorage });
+      await replaceFunctionsARN({ behavior, replaceFunctionsARNStorage });
     }
   }
-
   // Esperar a que todas las operaciones terminen
   await Promise.all(promises);
-
-  // Guardar config modificada en debug report
-  if (debug && debugReport)
-    debugReport.distributionConfig.modified = JSON.parse(JSON.stringify(distributionConfig));
 
   return distributionConfig;
 }

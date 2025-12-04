@@ -27,12 +27,10 @@ const processAssociations = async ({
   items,
   config,
   replaceFunctionsARNStorage,
-  debug,
 }: {
   items: any[];
   config: AssociationConfig;
   replaceFunctionsARNStorage: Map<string, string>;
-  debug: boolean;
 }): Promise<void> => {
   // Process in reverse to safely handle deletions
   for (let index = items.length - 1; index >= 0; index--) {
@@ -40,18 +38,14 @@ const processAssociations = async ({
     const currentARN = assoc[config.arnField];
     const displayIndex = index + 1;
 
-    if (debug) {
-      console.log(chalk.white(`  ✅ ${config.label} #${displayIndex}`));
-      console.log(chalk.dim(`    EventType: `) + chalk.cyan(`"${assoc.EventType}"`));
-      console.log(chalk.dim(`    ${config.arnField}: `) + chalk.cyan(`"${currentARN}"`));
-    }
+    console.log(chalk.white(`  ✅ ${config.label} #${displayIndex}`));
+    console.log(chalk.dim(`    EventType: `) + chalk.cyan(`"${assoc.EventType}"`));
+    console.log(chalk.dim(`    ${config.arnField}: `) + chalk.cyan(`"${currentARN}"`));
 
     let newARN = replaceFunctionsARNStorage.get(currentARN);
     if (newARN) {
-      if (debug) {
-        console.log(chalk.white(`  ✅ ${config.label}`) + chalk.cyan(` "${currentARN}"`) + chalk.green(` has a cached replacement`));
-        console.log(chalk.dim(`    ${currentARN} → ${newARN}`));
-      }
+      console.log(chalk.white(`  ✅ ${config.label}`) + chalk.cyan(` "${currentARN}"`) + chalk.green(` has a cached replacement`));
+      console.log(chalk.dim(`    ${currentARN} → ${newARN}`));
     } else {
       newARN = await getUserInput<string>({
         question: `The process to create ${config.type} is not done yet.\nCreate a new ${config.type === 'lambda' ? 'Lambda' : 'CloudFront'} Function to replace "${currentARN}" and enter the new Function ARN. Or type "delete" to remove this association`,
@@ -72,15 +66,12 @@ const processAssociations = async ({
     }
 
     if (newARN.trim().toLowerCase() === "delete") {
-      if (debug)
-        console.log(chalk.yellow(`  🗑️  Deleting ${config.label} #${displayIndex} as per user request`));
+      console.log(chalk.yellow(`  🗑️  Deleting ${config.label} #${displayIndex} as per user request`));
 
       items.splice(index, 1);
     } else {
-      if (debug) {
-        console.log(chalk.green(`  🔄 Replacing ${config.arnField} for Association #${displayIndex}`));
-        console.log(chalk.dim(`    ${currentARN} → ${newARN}`));
-      }
+      console.log(chalk.green(`  🔄 Replacing ${config.arnField} for Association #${displayIndex}`));
+      console.log(chalk.dim(`    ${currentARN} → ${newARN}`));
       assoc[config.arnField] = newARN;
     }
   }
@@ -89,11 +80,9 @@ const processAssociations = async ({
 export const replaceFunctionsARN = async ({
   behavior,
   replaceFunctionsARNStorage,
-  debug,
 }: {
   behavior: DefaultCacheBehavior;
   replaceFunctionsARNStorage: Map<string, string>;
-  debug: boolean;
 }): Promise<void> => {
   // Process Lambda Function Associations
   if (behavior.LambdaFunctionAssociations?.Items?.length) {
@@ -101,7 +90,6 @@ export const replaceFunctionsARN = async ({
       items: behavior.LambdaFunctionAssociations.Items,
       config: ASSOCIATION_CONFIGS.lambda,
       replaceFunctionsARNStorage,
-      debug,
     });
     behavior.LambdaFunctionAssociations.Quantity = behavior.LambdaFunctionAssociations.Items.length;
   }
@@ -112,7 +100,6 @@ export const replaceFunctionsARN = async ({
       items: behavior.FunctionAssociations.Items,
       config: ASSOCIATION_CONFIGS.function,
       replaceFunctionsARNStorage,
-      debug,
     });
     behavior.FunctionAssociations.Quantity = behavior.FunctionAssociations.Items.length;
   }

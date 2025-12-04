@@ -33,18 +33,14 @@ export async function replacePolicyId<
 
   // Si no hay policyId o está vacío, retornar undefined
   if (!policyId || policyId.trim() === '') {
-    if (debug) {
-      console.log(chalk.white(`  ❎ No ${policyTypeLabel} policy ID provided`) + chalk.dim(' - skipping'));
-    }
+    console.log(chalk.white(`  ❎ No ${policyTypeLabel} policy ID provided`) + chalk.dim(' - skipping'));
     return undefined;
   }
 
   // Buscar o cargar la policy config del origen
   let policyConfig = originPoliciesStorage.get(policyId);
   if (!policyConfig) {
-    if (debug) {
-      console.log(chalk.white(`  ❎ ${policyTypeLabel} policy ${chalk.yellow(policyId)} not found in source - likely an AWS managed policy, keeping original ID...`));
-    }
+    console.log(chalk.white(`  ❎ ${policyTypeLabel} policy ${chalk.yellow(policyId)} not found in source - likely an AWS managed policy, keeping original ID...`));
     return policyId; // Retorna el ID original para políticas manejadas por AWS
   }
 
@@ -53,57 +49,47 @@ export async function replacePolicyId<
   // Si ya existe en destino, retornar el ID
   const existingId = destinationNameToId.get(policyName);
   if (existingId) {
-    if (debug) {
-      console.log(chalk.white(`  ✅ ${policyTypeLabel} policy`) + chalk.cyan(` "${policyName}"`) + chalk.green(` already exists`));
-      console.log(chalk.dim(`    ${policyId} → ${existingId}`));
-      if (debugReport)
-        debugReport.policyIdMappings[policyId] = existingId;
-    }
+    console.log(chalk.white(`  ✅ ${policyTypeLabel} policy`) + chalk.cyan(` "${policyName}"`) + chalk.green(` already exists`));
+    console.log(chalk.dim(`    ${policyId} → ${existingId}`));
+    debugReport.policyIdMappings[policyId] = existingId;
     return existingId;
   }
 
   // Si ya hay una creación pendiente para esta policy, esperar a que termine
   const pendingCreation = pendingCreations.get(policyName);
   if (pendingCreation) {
-    if (debug) {
-      console.log(chalk.yellow(`  ⏳ Waiting for pending creation: `) + chalk.cyan(`"${policyName}"`));
-    }
+    console.log(chalk.yellow(`  ⏳ Waiting for pending creation: `) + chalk.cyan(`"${policyName}"`));
     return pendingCreation;
+  }
+
+
+  console.log(chalk.magenta(`\n  ════════════════════════════════════════`));
+  console.log(chalk.magenta.bold(`  ➕ Creating new ${policyTypeLabel} policy`));
+  console.log(chalk.cyan(`     Name: `) + chalk.bold(policyName));
+  console.log(chalk.dim(`     Source ID: ${policyId}`));
+  console.log(chalk.magenta(`  ════════════════════════════════════════\n`));
+
+  const policyEntry = {
+    originalId: policyId,
+    name: policyName,
+    config: policyConfig as any,
+  };
+
+  switch (policyType) {
+    case 'CACHE':
+      debugReport.policiesToCreate.cachePolicies.push(policyEntry);
+      break;
+    case 'RESPONSE_HEADERS':
+      debugReport.policiesToCreate.responseHeadersPolicies.push(policyEntry);
+      break;
+    case 'ORIGIN_REQUEST':
+      debugReport.policiesToCreate.originRequestPolicies.push(policyEntry);
+      break;
   }
 
   if (debug) {
     const mockNewId = `DEBUG_${policyType}_${policyId}`;
-
-    console.log(chalk.magenta(`\n  ════════════════════════════════════════`));
-    console.log(chalk.magenta.bold(`  ➕ Creating new ${policyTypeLabel} policy`));
-    console.log(chalk.cyan(`     Name: `) + chalk.bold(policyName));
-    console.log(chalk.dim(`     Source ID: ${policyId}`));
-    console.log(chalk.dim(`     Mock Destination ID: ${mockNewId}`));
-    console.log(chalk.magenta(`  ════════════════════════════════════════\n`));
-
-    if (debugReport) {
-      debugReport.policyIdMappings[policyId] = mockNewId;
-
-      const policyEntry = {
-        originalId: policyId,
-        mockNewId,
-        name: policyName,
-        config: policyConfig as any,
-      };
-
-      switch (policyType) {
-        case 'CACHE':
-          debugReport.policiesToCreate.cachePolicies.push(policyEntry);
-          break;
-        case 'RESPONSE_HEADERS':
-          debugReport.policiesToCreate.responseHeadersPolicies.push(policyEntry);
-          break;
-        case 'ORIGIN_REQUEST':
-          debugReport.policiesToCreate.originRequestPolicies.push(policyEntry);
-          break;
-      }
-    }
-
+    debugReport.policyIdMappings[policyId] = mockNewId;
     // Agregar el mock ID al map para que otros behaviors lo encuentren
     destinationNameToId.set(policyName, mockNewId);
     return mockNewId;
@@ -112,6 +98,7 @@ export async function replacePolicyId<
   const creationPromise = (async () => {
     const createResult = await handler.create(destinationClient, policyConfig!);
     const newId = handler.extractIdFromResult(createResult);
+    debugReport.policyIdMappings[policyId] = newId;
     destinationNameToId.set(policyName, newId);
     pendingCreations.delete(policyName);
     return newId;

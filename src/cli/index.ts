@@ -28,19 +28,19 @@ export interface DebugReport {
   policiesToCreate: {
     cachePolicies: Array<{
       originalId: string;
-      mockNewId: string;
+      newId?: string;
       name: string;
       config: CachePolicyConfig;
     }>;
     responseHeadersPolicies: Array<{
       originalId: string;
-      mockNewId: string;
+      newId?: string;
       name: string;
       config: ResponseHeadersPolicyConfig;
     }>;
     originRequestPolicies: Array<{
       originalId: string;
-      mockNewId: string;
+      newId?: string;
       name: string;
       config: OriginRequestPolicyConfig;
     }>;
@@ -217,35 +217,32 @@ const main = async () => {
   console.log(chalk.blue("📝 New CallerReference:"), chalk.white(newDistributionConfig.CallerReference));
   console.log(chalk.blue("💬 New comment:"), chalk.white(newComment), "\n");
 
-  // Save debug report if in debug mode
-  if (debug) {
-    debugReport.distributionConfig.original = originDistributionConfig.DistributionConfig;
-    debugReport.distributionConfig.modified = newDistributionConfig;
+  debugReport.distributionConfig.original = originDistributionConfig.DistributionConfig;
+  debugReport.distributionConfig.modified = newDistributionConfig;
 
-    const totalPolicies =
-      debugReport.policiesToCreate.cachePolicies.length +
-      debugReport.policiesToCreate.responseHeadersPolicies.length +
-      debugReport.policiesToCreate.originRequestPolicies.length;
+  const totalPolicies =
+    debugReport.policiesToCreate.cachePolicies.length +
+    debugReport.policiesToCreate.responseHeadersPolicies.length +
+    debugReport.policiesToCreate.originRequestPolicies.length;
 
-    writeFileSync(
-      'debug-report.json',
-      JSON.stringify(debugReport, null, 2),
-      'utf-8'
-    );
+  writeFileSync(
+    'debug-report.json',
+    JSON.stringify(debugReport, null, 2),
+    'utf-8'
+  );
 
-    console.log(chalk.magenta.bold("╔═══════════════════════════════════════════════╗"));
-    console.log(chalk.magenta.bold("║            DEBUG REPORT GENERATED             ║"));
-    console.log(chalk.magenta.bold("╚═══════════════════════════════════════════════╝"));
-    console.log(chalk.blue("📄 File:"), chalk.white.bold("debug-report.json"));
-    console.log(chalk.blue("⏰ Timestamp:"), chalk.white(debugReport.summary.timestamp), "\n");
-    console.log(chalk.cyan.bold("📊 POLICIES TO CREATE:"));
-    console.log(chalk.yellow("   Total:"), chalk.white.bold(`${totalPolicies}`));
-    console.log(chalk.dim("   ├─"), chalk.blue("Cache Policies:"), chalk.white(`${debugReport.policiesToCreate.cachePolicies.length}`));
-    console.log(chalk.dim("   ├─"), chalk.blue("Response Headers Policies:"), chalk.white(`${debugReport.policiesToCreate.responseHeadersPolicies.length}`));
-    console.log(chalk.dim("   └─"), chalk.blue("Origin Request Policies:"), chalk.white(`${debugReport.policiesToCreate.originRequestPolicies.length}`), "\n");
-    console.log(chalk.cyan("🔗 ID Mappings:"), chalk.white.bold(`${Object.keys(debugReport.policyIdMappings).length}`));
-    console.log(chalk.magenta("═══════════════════════════════════════════════\n"));
-  }
+  console.log(chalk.magenta.bold("╔═══════════════════════════════════════════════╗"));
+  console.log(chalk.magenta.bold("║            DEBUG REPORT GENERATED             ║"));
+  console.log(chalk.magenta.bold("╚═══════════════════════════════════════════════╝"));
+  console.log(chalk.blue("📄 File:"), chalk.white.bold("debug-report.json"));
+  console.log(chalk.blue("⏰ Timestamp:"), chalk.white(debugReport.summary.timestamp), "\n");
+  console.log(chalk.cyan.bold("📊 POLICIES TO CREATE:"));
+  console.log(chalk.yellow("   Total:"), chalk.white.bold(`${totalPolicies}`));
+  console.log(chalk.dim("   ├─"), chalk.blue("Cache Policies:"), chalk.white(`${debugReport.policiesToCreate.cachePolicies.length}`));
+  console.log(chalk.dim("   ├─"), chalk.blue("Response Headers Policies:"), chalk.white(`${debugReport.policiesToCreate.responseHeadersPolicies.length}`));
+  console.log(chalk.dim("   └─"), chalk.blue("Origin Request Policies:"), chalk.white(`${debugReport.policiesToCreate.originRequestPolicies.length}`), "\n");
+  console.log(chalk.cyan("🔗 ID Mappings:"), chalk.white.bold(`${Object.keys(debugReport.policyIdMappings).length}`));
+  console.log(chalk.magenta("═══════════════════════════════════════════════\n"));
 
   console.log(chalk.green.bold("🎉 Process completed successfully"));
 };
