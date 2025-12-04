@@ -98,9 +98,8 @@ export const replaceCacheBehaviors = async ({
   const pendingOriginRequestCreations = new Map<string, Promise<string>>();
 
   // Popular map con policies de la distribución origen
-  if (debug) {
+  if (debug)
     console.log(chalk.cyan.bold('📥 Policies from source distribution...\n'));
-  }
 
   for (const item of originCachePolicies.Items || []) {
     const policy = item.CachePolicy;
@@ -131,9 +130,8 @@ export const replaceCacheBehaviors = async ({
   }
 
   // Popular map con policies existentes en destino
-  if (debug) {
+  if (debug)
     console.log(chalk.cyan.bold('📥 Existing policies from destination account...\n'));
-  }
 
   for (const item of destinationCachePolicies.Items || []) {
     const policy = item.CachePolicy;
@@ -167,9 +165,8 @@ export const replaceCacheBehaviors = async ({
   // Reemplazar IDs en DefaultCacheBehavior
   const defaultBehavior = distributionConfig.DefaultCacheBehavior;
 
-  if (debug) {
+  if (debug)
     console.log(chalk.green.bold('🔄 Processing DefaultCacheBehavior...\n'));
-  }
 
   // Cache policies
   promises.push(
@@ -218,14 +215,12 @@ export const replaceCacheBehaviors = async ({
 
   // Reemplazar IDs en CacheBehaviors adicionales
   if (distributionConfig.CacheBehaviors?.Items) {
-    if (debug) {
+    if (debug)
       console.log(chalk.green.bold(`🔄 Processing ${distributionConfig.CacheBehaviors.Items.length} additional CacheBehaviors...\n`));
-    }
 
     for (const [index, behavior] of distributionConfig.CacheBehaviors.Items.entries()) {
-      if (debug) {
+      if (debug)
         console.log(chalk.magenta.bold(`📍 CacheBehavior #${index + 1}`) + chalk.dim(` - PathPattern: `) + chalk.cyan(`"${behavior.PathPattern}"`));
-      }
 
       // Cache policies
       promises.push(
@@ -278,9 +273,8 @@ export const replaceCacheBehaviors = async ({
   await Promise.all(promises);
 
   // Guardar config modificada en debug report
-  if (debug && debugReport) {
+  if (debug && debugReport)
     debugReport.distributionConfig.modified = JSON.parse(JSON.stringify(distributionConfig));
-  }
 
   return distributionConfig;
 }

@@ -56,9 +56,8 @@ export async function replacePolicyId<
     if (debug) {
       console.log(chalk.white(`  ✅ ${policyTypeLabel} policy`) + chalk.cyan(` "${policyName}"`) + chalk.green(` already exists`));
       console.log(chalk.dim(`    ${policyId} → ${existingId}`));
-      if (debugReport) {
+      if (debugReport)
         debugReport.policyIdMappings[policyId] = existingId;
-      }
     }
     return existingId;
   }
