@@ -13,7 +13,7 @@ import {
   getOriginRequestPolicies,
   getResponseHeadersPolicies
 } from "../aws/getPolicies";
-import { replaceCacheBehaviors } from "../logic/replaceCacheBehaviors";
+import { replaceCacheBehaviors } from "../logic/replace/replaceCacheBehaviors";
 import { writeFileSync } from "fs";
 import chalk from "../utils/mini-chalk";
 import { getUserInput } from "../utils/getUserInput";
@@ -193,7 +193,7 @@ const main = async () => {
   let newComment: string;
   if (!copyComment) {
     newComment = await getUserInput({
-      question: "Enter the distribution comment",
+      question: "Enter the new distribution comment",
       defaultValue: `COPY: ${newDistributionConfig.Comment}`,
       validate: (name: string) => {
         if (!name.trim())
