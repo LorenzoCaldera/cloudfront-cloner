@@ -6,9 +6,7 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "start": "node --enable-source-maps dist/cli/index.js",
-    "dev": "ts-node --esm src/cli/index.ts",
-    "dev:watch": "ts-node-dev --respawn --transpile-only src/cli/index.ts"
+    "start": "tsc -p tsconfig.json && node dist/cli/index.js"
   },
   "devDependencies": {
     "@types/node": "^24.10.1",
