@@ -56,6 +56,36 @@ export const replaceOrigins = async ({
   console.log(chalk.yellow(`📊 Found ${origins.length} origin(s) to process\n`));
 
   const originUpdates: OriginUpdate[] = [];
+  const uniqueOACIds = new Set(
+    origins
+      .filter(o => o.OriginAccessControlId)
+      .map(o => o.OriginAccessControlId!)
+  );
+  const oacReplacements = new Map<string, string>();
+  if (uniqueOACIds.size > 0) {
+    console.log(chalk.cyan.bold('\n🔐 Origin Access Control ID Replacement'));
+    console.log(chalk.white(`Found ${uniqueOACIds.size} unique OAC ID(s)\n`));
+
+    for (const oacId of uniqueOACIds) {
+      const newOACId = await getUserInput({
+        question: `Enter value for Origin Access Control ID: "${oacId}"`,
+        defaultValue: oacId,
+        validate: (id: string) => {
+          if (!id.trim()) {
+            return {
+              isValid: false,
+              reason: 'Origin Access Control ID cannot be empty',
+            };
+          }
+
+          return { isValid: true };
+        },
+      });
+      oacReplacements.set(oacId, newOACId);
+    }
+  }
+
+  const originAccessControlIdStorage = new Map<string, string>();
 
   for (const [index, origin] of origins.entries()) {
     const originType = detectOriginType(origin.DomainName);
@@ -101,10 +131,19 @@ export const replaceOrigins = async ({
     });
 
     origin.DomainName = newDomain;
-    update.newDomain = newDomain;
     update.wasModified = newDomain !== origin.DomainName;
+    update.newDomain = newDomain;
 
-    console.log(chalk.green(`   ✅ Domain updated to: `) + chalk.white.bold(newDomain));
+    console.log(chalk.green(`   ✅ Domain updated to: `) + chalk.white.bold(newDomain) + '\n');
+
+    if (origin.OriginAccessControlId) {
+      console.log(chalk.dim('   📍 Detected Origin Access Control ID: ') + chalk.white(origin.OriginAccessControlId));
+      const newOACId = oacReplacements.get(origin.OriginAccessControlId);
+      if (newOACId && newOACId !== origin.OriginAccessControlId) {
+        origin.OriginAccessControlId = newOACId;
+        console.log(chalk.green(`   ✅ Origin Access Control ID updated to: `) + chalk.white.bold(newOACId) + '\n');
+      }
+    }
 
     originUpdates.push(update);
   }
@@ -116,8 +155,7 @@ export const replaceOrigins = async ({
   console.log(chalk.cyan.bold('📊 Summary:'));
   console.log(chalk.dim('   ├─ ') + chalk.white('Total origins: ') + chalk.bold(origins.length.toString()));
   console.log(chalk.dim('   ├─ ') + chalk.green('Modified: ') + chalk.bold(modifiedCount.toString()));
-  console.log(chalk.dim('   └─ ') + chalk.blue('Kept as-is: ') + chalk.bold(keptCount.toString()));
-  console.log();
+  console.log(chalk.dim('   └─ ') + chalk.blue('Kept as-is: ') + chalk.bold(keptCount.toString()) + '\n');
 
   if (debug && debugReport) {
     if (!debugReport.originUpdates) {

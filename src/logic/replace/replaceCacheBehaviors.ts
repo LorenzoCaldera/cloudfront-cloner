@@ -207,7 +207,7 @@ export const replaceCacheBehaviors = async ({
     console.log(chalk.green.bold(`🔄 Processing ${distributionConfig.CacheBehaviors.Items.length} additional CacheBehaviors...\n`));
 
     for (const [index, behavior] of distributionConfig.CacheBehaviors.Items.entries()) {
-      console.log(chalk.magenta.bold(`📍 CacheBehavior #${index + 1}`) + chalk.dim(` - PathPattern: `) + chalk.cyan(`"${behavior.PathPattern}"`));
+      console.log(chalk.magenta.bold(`\n📍 CacheBehavior #${index + 1}`) + chalk.dim(` - PathPattern: `) + chalk.cyan(`"${behavior.PathPattern}"`));
 
       // Cache policies
       promises.push(
