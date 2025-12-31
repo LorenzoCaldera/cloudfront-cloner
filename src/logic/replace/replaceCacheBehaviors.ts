@@ -75,7 +75,6 @@ export const replaceCacheBehaviors = async ({
 }: IreplaceIds): Promise<DistributionConfig> => {
   // Guardar config original en debug report
   if (debug && debugReport) {
-    debugReport.distributionConfig.original = distributionConfig;
     console.log(chalk.blue.bold('\n╔════════════════════════════════════════════╗'));
     console.log(chalk.blue.bold('║') + chalk.white.bold('  DEBUG MODE - Policy ID Replacement        ') + chalk.blue.bold('║'));
     console.log(chalk.blue.bold('║') + chalk.dim('  No real changes will be made to AWS       ') + chalk.blue.bold('║'));

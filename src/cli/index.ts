@@ -17,6 +17,7 @@ import { replaceCacheBehaviors } from "../logic/replace/replaceCacheBehaviors";
 import { writeFileSync } from "fs";
 import chalk from "../utils/mini-chalk";
 import { getUserInput } from "../utils/getUserInput";
+import { OriginUpdate, replaceOrigins } from "../logic/replace/replaceOrigins";
 
 export interface DebugReport {
   summary: {
@@ -46,9 +47,10 @@ export interface DebugReport {
     }>;
   };
   distributionConfig: {
-    original: DistributionConfig | null;
+    original: DistributionConfig;
     modified: DistributionConfig | null;
   };
+  originUpdates: Array<OriginUpdate>;
   policyIdMappings: Record<string, string>;
 }
 
@@ -151,16 +153,25 @@ const main = async () => {
       originRequestPolicies: []
     },
     distributionConfig: {
-      original: null,
+      original: originDistributionConfig.DistributionConfig,
       modified: null
     },
+    originUpdates: [],
     policyIdMappings: {}
   };
 
   console.log(chalk.cyan("🔄 Processing policies and replacing IDs..."));
 
-  const newDistributionConfig = await replaceCacheBehaviors({
-    distributionConfig: { ...originDistributionConfig.DistributionConfig },
+  let newDistributionConfig = { ...originDistributionConfig.DistributionConfig };
+
+  newDistributionConfig.Origins.Items = await replaceOrigins({
+    origins: newDistributionConfig.Origins?.Items || [],
+    debug,
+    debugReport
+  });
+
+  newDistributionConfig = await replaceCacheBehaviors({
+    distributionConfig: newDistributionConfig,
     debugReport,
     debug,
     originCachePolicies,
