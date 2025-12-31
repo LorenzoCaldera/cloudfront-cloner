@@ -56,7 +56,7 @@ const processAssociations = async ({
             return { isValid: false, reason: "Function ARN cannot be empty" };
 
           // Basic ARN validation
-          if (!/^arn:aws[a-zA-Z-]*:lambda:[a-z0-9-]+:\d{12}:function:[a-zA-Z0-9-_]+$/.test(input) && !/^arn:aws[a-zA-Z-]*:cloudfront::\d{12}:function\/[a-zA-Z0-9-_]+$/.test(input) && input.trim() !== "delete")
+          if (!/^arn:aws[a-zA-Z-]*:lambda:[a-z0-9-]+:\d{12}:function:[a-zA-Z0-9-_:]+$/.test(input) && !/^arn:aws[a-zA-Z-]*:cloudfront::\d{12}:function\/[a-zA-Z0-9-_:]+$/.test(input) && input.trim() !== "delete")
             return { isValid: false, reason: "Invalid ARN format" };
 
           return { isValid: true };
