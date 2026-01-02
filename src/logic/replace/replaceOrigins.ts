@@ -155,13 +155,11 @@ export const replaceOrigins = async ({
   console.log(chalk.dim('   ├─ ') + chalk.green('Modified: ') + chalk.bold(modifiedCount.toString()));
   console.log(chalk.dim('   └─ ') + chalk.blue('Kept as-is: ') + chalk.bold(keptCount.toString()), '\n');
 
-  if (debug && debugReport) {
+  if (debugReport) {
     if (!debugReport.originUpdates) {
       debugReport.originUpdates = [];
     }
     debugReport.originUpdates = originUpdates;
-
-    console.log(chalk.magenta('🐛 Debug: Origin updates recorded in debug report'), '\n');
   }
 
   return origins;

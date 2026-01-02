@@ -263,7 +263,7 @@ const main = async () => {
   console.log(chalk.blue("📄 File:"), chalk.white.bold("debug-report.json"), "\n");
   console.log(chalk.blue("⏰ Start:"), chalk.white(debugReport.summary.startTimestamp));
   console.log(chalk.blue("⏰ End:"), chalk.white(debugReport.summary.endTimestamp));
-  console.log(chalk.blue("⏱️  Total time (seconds):"), chalk.white.bold(`${debugReport.summary.totalTimeSeconds}`), "\n");
+  console.log(chalk.blue("⏱️  Total time (seconds):"), chalk.white.bold(`${debugReport.summary.totalTimeSeconds}s`), "\n");
   console.log(chalk.magenta("═══════════════════════════════════════════════"), "\n");
   console.log(chalk.cyan.bold("📦 ORIGINS:"));
   console.log(chalk.yellow("   Total updated:"), chalk.white.bold(`${debugReport.originUpdates.length}`), "\n");
