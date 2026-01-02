@@ -47,8 +47,9 @@ const processAssociations = async ({
       console.log(chalk.white(`  ✅ ${config.label}`) + chalk.cyan(` "${currentARN}"`) + chalk.green(` has a cached replacement`));
       console.log(chalk.dim(`    ${currentARN} → ${newARN}`));
     } else {
-      newARN = await getUserInput<string>({
+      newARN = await getUserInput({
         question: `The process to create ${config.type} is not done yet.\nCreate a new ${config.type === 'lambda' ? 'Lambda' : 'CloudFront'} Function to replace "${currentARN}" and enter the new Function ARN. Or type "delete" to remove this association`,
+        defaultValue: currentARN,
         validate: (input: string) => {
           if (input.trim().toLowerCase() === "delete") return { isValid: true };
 
