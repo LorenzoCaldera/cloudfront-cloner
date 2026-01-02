@@ -45,11 +45,11 @@ export const replaceOrigins = async ({
     console.log(chalk.blue.bold('\n╔════════════════════════════════════════════╗'));
     console.log(chalk.blue.bold('║') + chalk.white.bold('  DEBUG MODE - Origin Replacement           ') + chalk.blue.bold('║'));
     console.log(chalk.blue.bold('║') + chalk.dim('  Reviewing origin configurations            ') + chalk.blue.bold('║'));
-    console.log(chalk.blue.bold('╚════════════════════════════════════════════╝\n'));
+    console.log(chalk.blue.bold('╚════════════════════════════════════════════╝'), '\n');
   }
 
   if (origins.length === 0) {
-    console.log(chalk.yellow('⚠️  No origins found in distribution\n'));
+    console.log(chalk.yellow('⚠️  No origins found in distribution'), '\n');
     return origins;
   }
 
@@ -134,14 +134,14 @@ export const replaceOrigins = async ({
     update.wasModified = newDomain !== origin.DomainName;
     update.newDomain = newDomain;
 
-    console.log(chalk.green(`   ✅ Domain updated to: `) + chalk.white.bold(newDomain) + '\n');
+    console.log(chalk.green(`   ✅ Domain updated to: `) + chalk.white.bold(newDomain), '\n');
 
     if (origin.OriginAccessControlId) {
       console.log(chalk.dim('   📍 Detected Origin Access Control ID: ') + chalk.white(origin.OriginAccessControlId));
       const newOACId = oacReplacements.get(origin.OriginAccessControlId);
       if (newOACId && newOACId !== origin.OriginAccessControlId) {
         origin.OriginAccessControlId = newOACId;
-        console.log(chalk.green(`   ✅ Origin Access Control ID updated to: `) + chalk.white.bold(newOACId) + '\n');
+        console.log(chalk.green(`   ✅ Origin Access Control ID updated to: `) + chalk.white.bold(newOACId), '\n');
       }
     }
 
@@ -151,11 +151,11 @@ export const replaceOrigins = async ({
   const modifiedCount = originUpdates.filter(u => u.wasModified).length;
   const keptCount = originUpdates.filter(u => !u.wasModified).length;
 
-  console.log(chalk.green.bold('✅ Origins processing complete\n'));
+  console.log(chalk.green.bold('✅ Origins processing complete'), '\n');
   console.log(chalk.cyan.bold('📊 Summary:'));
   console.log(chalk.dim('   ├─ ') + chalk.white('Total origins: ') + chalk.bold(origins.length.toString()));
   console.log(chalk.dim('   ├─ ') + chalk.green('Modified: ') + chalk.bold(modifiedCount.toString()));
-  console.log(chalk.dim('   └─ ') + chalk.blue('Kept as-is: ') + chalk.bold(keptCount.toString()) + '\n');
+  console.log(chalk.dim('   └─ ') + chalk.blue('Kept as-is: ') + chalk.bold(keptCount.toString()), '\n');
 
   if (debug && debugReport) {
     if (!debugReport.originUpdates) {
@@ -163,7 +163,7 @@ export const replaceOrigins = async ({
     }
     debugReport.originUpdates = originUpdates;
 
-    console.log(chalk.magenta('🐛 Debug: Origin updates recorded in debug report\n'));
+    console.log(chalk.magenta('🐛 Debug: Origin updates recorded in debug report'), '\n');
   }
 
   return origins;

@@ -78,7 +78,7 @@ export const replaceCacheBehaviors = async ({
     console.log(chalk.blue.bold('\n╔════════════════════════════════════════════╗'));
     console.log(chalk.blue.bold('║') + chalk.white.bold('  DEBUG MODE - Policy ID Replacement        ') + chalk.blue.bold('║'));
     console.log(chalk.blue.bold('║') + chalk.dim('  No real changes will be made to AWS       ') + chalk.blue.bold('║'));
-    console.log(chalk.blue.bold('╚════════════════════════════════════════════╝\n'));
+    console.log(chalk.blue.bold('╚════════════════════════════════════════════╝'), '\n');
   }
 
   // Caches para policies del origen
@@ -100,7 +100,7 @@ export const replaceCacheBehaviors = async ({
   const replaceFunctionsARNStorage = new Map<string, string>();
 
   // Popular map con policies de la distribución origen
-  console.log(chalk.cyan.bold('📥 Policies from source distribution...\n'));
+  console.log(chalk.cyan.bold('📥 Policies from source distribution...'), '\n');
 
   for (const item of originCachePolicies.Items || []) {
     const policy = item.CachePolicy;
@@ -126,7 +126,7 @@ export const replaceCacheBehaviors = async ({
   console.log(chalk.dim(`   - ${originOriginRequestPolicies.Items?.length || 0} Origin Request policies\n`));
 
   // Popular map con policies existentes en destino
-  console.log(chalk.cyan.bold('📥 Existing policies from destination account...\n'));
+  console.log(chalk.cyan.bold('📥 Existing policies from destination account...'), '\n');
 
   for (const item of destinationCachePolicies.Items || []) {
     const policy = item.CachePolicy;
@@ -155,7 +155,7 @@ export const replaceCacheBehaviors = async ({
   // Reemplazar IDs en DefaultCacheBehavior
   const defaultBehavior = distributionConfig.DefaultCacheBehavior;
 
-  console.log(chalk.green.bold('🔄 Processing DefaultCacheBehavior...\n'));
+  console.log(chalk.green.bold('🔄 Processing DefaultCacheBehavior...'), '\n');
 
   // Cache policies
   promises.push(
@@ -200,7 +200,7 @@ export const replaceCacheBehaviors = async ({
     ).then((id) => { defaultBehavior.OriginRequestPolicyId = id; })
   );
   // Lambda function associations
-  await replaceFunctionsARN({ behavior: defaultBehavior, replaceFunctionsARNStorage });
+  await replaceFunctionsARN({ behavior: defaultBehavior, replaceFunctionsARNStorage, debugReport });
 
   // Reemplazar IDs en CacheBehaviors adicionales
   if (distributionConfig.CacheBehaviors?.Items) {

@@ -24,7 +24,9 @@ export interface DebugReport {
     originProfile: string;
     destinationProfile: string;
     distributionIdToCopy: string;
-    timestamp: string;
+    startTimestamp: string;
+    endTimestamp?: string;
+    totalTimeSeconds?: number;
   };
   policiesToCreate: {
     cachePolicies: Array<{
@@ -50,6 +52,11 @@ export interface DebugReport {
     original: DistributionConfig;
     modified: DistributionConfig | null;
   };
+  functionUpdates: Array<{
+    type: 'lambda' | 'function';
+    originalARN: string;
+    newARN?: string;
+  }>;
   originUpdates: Array<OriginUpdate>;
   policyIdMappings: Record<string, string>;
 }
@@ -145,7 +152,7 @@ const main = async () => {
       originProfile: originProfileName,
       destinationProfile: destinationProfileName,
       distributionIdToCopy,
-      timestamp: new Date().toISOString()
+      startTimestamp: new Date().toISOString()
     },
     policiesToCreate: {
       cachePolicies: [],
@@ -156,6 +163,7 @@ const main = async () => {
       original: originDistributionConfig.DistributionConfig,
       modified: null
     },
+    functionUpdates: [],
     originUpdates: [],
     policyIdMappings: {}
   };
@@ -237,6 +245,12 @@ const main = async () => {
     debugReport.policiesToCreate.responseHeadersPolicies.length +
     debugReport.policiesToCreate.originRequestPolicies.length;
 
+  debugReport.summary.endTimestamp = new Date().toISOString();
+  debugReport.summary.totalTimeSeconds =
+    (new Date(debugReport.summary.endTimestamp).getTime() -
+      new Date(debugReport.summary.startTimestamp).getTime()) /
+    1000;
+
   writeFileSync(
     'debug-report.json',
     JSON.stringify(debugReport, null, 2),
@@ -246,15 +260,23 @@ const main = async () => {
   console.log(chalk.magenta.bold("╔═══════════════════════════════════════════════╗"));
   console.log(chalk.magenta.bold("║            DEBUG REPORT GENERATED             ║"));
   console.log(chalk.magenta.bold("╚═══════════════════════════════════════════════╝"));
-  console.log(chalk.blue("📄 File:"), chalk.white.bold("debug-report.json"));
-  console.log(chalk.blue("⏰ Timestamp:"), chalk.white(debugReport.summary.timestamp), "\n");
-  console.log(chalk.cyan.bold("📊 POLICIES TO CREATE:"));
-  console.log(chalk.yellow("   Total:"), chalk.white.bold(`${totalPolicies}`));
+  console.log(chalk.blue("📄 File:"), chalk.white.bold("debug-report.json"), "\n");
+  console.log(chalk.blue("⏰ Start:"), chalk.white(debugReport.summary.startTimestamp));
+  console.log(chalk.blue("⏰ End:"), chalk.white(debugReport.summary.endTimestamp));
+  console.log(chalk.blue("⏱️  Total time (seconds):"), chalk.white.bold(`${debugReport.summary.totalTimeSeconds}`), "\n");
+  console.log(chalk.magenta("═══════════════════════════════════════════════"), "\n");
+  console.log(chalk.cyan.bold("📦 ORIGINS:"));
+  console.log(chalk.yellow("   Total updated:"), chalk.white.bold(`${debugReport.originUpdates.length}`), "\n");
+  console.log(chalk.cyan.bold("🔄 FUNCTIONS:"));
+  console.log(chalk.yellow("   Total updated:"), chalk.white.bold(`${debugReport.functionUpdates.length}`), "\n");
+  console.log(chalk.cyan.bold("📊 POLICIES:"));
+  console.log(chalk.yellow("   Total to create:"), chalk.white.bold(`${totalPolicies}`));
   console.log(chalk.dim("   ├─"), chalk.blue("Cache Policies:"), chalk.white(`${debugReport.policiesToCreate.cachePolicies.length}`));
   console.log(chalk.dim("   ├─"), chalk.blue("Response Headers Policies:"), chalk.white(`${debugReport.policiesToCreate.responseHeadersPolicies.length}`));
   console.log(chalk.dim("   └─"), chalk.blue("Origin Request Policies:"), chalk.white(`${debugReport.policiesToCreate.originRequestPolicies.length}`), "\n");
   console.log(chalk.cyan("🔗 ID Mappings:"), chalk.white.bold(`${Object.keys(debugReport.policyIdMappings).length}`));
-  console.log(chalk.magenta("═══════════════════════════════════════════════\n"));
+  console.log(chalk.magenta("═══════════════════════════════════════════════"), "\n");
+  console.log(chalk.dim("for more details, please check the debug-report.json file generated in the current directory.\n"));
 
   console.log(chalk.green.bold("🎉 Process completed successfully"));
 };

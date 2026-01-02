@@ -1,6 +1,7 @@
 import { DefaultCacheBehavior } from "@aws-sdk/client-cloudfront";
 import chalk from "../../utils/mini-chalk";
 import { getUserInput } from "../../utils/getUserInput";
+import { DebugReport } from "../../cli";
 
 type AssociationType = 'lambda' | 'function';
 
@@ -27,10 +28,12 @@ const processAssociations = async ({
   items,
   config,
   replaceFunctionsARNStorage,
+  debugReport,
 }: {
   items: any[];
   config: AssociationConfig;
   replaceFunctionsARNStorage: Map<string, string>;
+  debugReport: DebugReport
 }): Promise<void> => {
   // Process in reverse to safely handle deletions
   for (let index = items.length - 1; index >= 0; index--) {
@@ -45,7 +48,6 @@ const processAssociations = async ({
     let newARN = replaceFunctionsARNStorage.get(currentARN);
     if (newARN) {
       console.log(chalk.white(`  ✅ ${config.label}`) + chalk.cyan(` "${currentARN}"`) + chalk.green(` has a cached replacement`));
-      console.log(chalk.dim(`    ${currentARN} → ${newARN}`));
     } else {
       newARN = await getUserInput({
         question: `The process to create ${config.type} is not done yet.\nCreate a new ${config.type === 'lambda' ? 'Lambda' : 'CloudFront'} Function to replace "${currentARN}" and enter the new Function ARN. Or type "delete" to remove this association`,
@@ -65,6 +67,14 @@ const processAssociations = async ({
       });
 
       replaceFunctionsARNStorage.set(currentARN, newARN);
+
+      if (debugReport) {
+        debugReport.functionUpdates.push({
+          type: config.type,
+          originalARN: currentARN,
+          newARN,
+        });
+      }
     }
 
     if (newARN.trim().toLowerCase() === "delete") {
@@ -82,9 +92,11 @@ const processAssociations = async ({
 export const replaceFunctionsARN = async ({
   behavior,
   replaceFunctionsARNStorage,
+  debugReport,
 }: {
   behavior: DefaultCacheBehavior;
   replaceFunctionsARNStorage: Map<string, string>;
+  debugReport?: DebugReport;
 }): Promise<void> => {
   // Process Lambda Function Associations
   if (behavior.LambdaFunctionAssociations?.Items?.length) {
@@ -92,6 +104,7 @@ export const replaceFunctionsARN = async ({
       items: behavior.LambdaFunctionAssociations.Items,
       config: ASSOCIATION_CONFIGS.lambda,
       replaceFunctionsARNStorage,
+      debugReport,
     });
     behavior.LambdaFunctionAssociations.Quantity = behavior.LambdaFunctionAssociations.Items.length;
   }
@@ -102,6 +115,7 @@ export const replaceFunctionsARN = async ({
       items: behavior.FunctionAssociations.Items,
       config: ASSOCIATION_CONFIGS.function,
       replaceFunctionsARNStorage,
+      debugReport,
     });
     behavior.FunctionAssociations.Quantity = behavior.FunctionAssociations.Items.length;
   }
