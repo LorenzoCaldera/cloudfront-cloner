@@ -252,7 +252,7 @@ export const replaceCacheBehaviors = async ({
         ).then((id) => { behavior.OriginRequestPolicyId = id; })
       );
       // Lambda function associations
-      await replaceFunctionsARN({ behavior, replaceFunctionsARNStorage });
+      await replaceFunctionsARN({ behavior, replaceFunctionsARNStorage, debugReport });
     }
   }
   // Esperar a que todas las operaciones terminen
