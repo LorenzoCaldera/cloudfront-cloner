@@ -44,7 +44,7 @@ export const replaceOrigins = async ({
   if (debug && debugReport) {
     console.log(chalk.blue.bold('\n╔════════════════════════════════════════════╗'));
     console.log(chalk.blue.bold('║') + chalk.white.bold('  DEBUG MODE - Origin Replacement           ') + chalk.blue.bold('║'));
-    console.log(chalk.blue.bold('║') + chalk.dim('  Reviewing origin configurations            ') + chalk.blue.bold('║'));
+    console.log(chalk.blue.bold('║') + chalk.dim('  Reviewing origin configurations           ') + chalk.blue.bold('║'));
     console.log(chalk.blue.bold('╚════════════════════════════════════════════╝'), '\n');
   }
 
@@ -53,7 +53,7 @@ export const replaceOrigins = async ({
     return origins;
   }
 
-  console.log(chalk.yellow(`📊 Found ${origins.length} origin(s) to process\n`));
+  console.log(chalk.yellow(`📊 Found ${origins.length} origin(s) to process`), '\n');
 
   const originUpdates: OriginUpdate[] = [];
   const uniqueOACIds = new Set(
@@ -63,8 +63,8 @@ export const replaceOrigins = async ({
   );
   const oacReplacements = new Map<string, string>();
   if (uniqueOACIds.size > 0) {
-    console.log(chalk.cyan.bold('\n🔐 Origin Access Control ID Replacement'));
-    console.log(chalk.white(`Found ${uniqueOACIds.size} unique OAC ID(s)\n`));
+    console.log(chalk.cyan.bold('🔐 Origin Access Control ID Replacement'));
+    console.log(chalk.white(`Found ${uniqueOACIds.size} unique OAC ID(s)`));
 
     for (const oacId of uniqueOACIds) {
       const newOACId = await getUserInput({
@@ -84,8 +84,6 @@ export const replaceOrigins = async ({
       oacReplacements.set(oacId, newOACId);
     }
   }
-
-  const originAccessControlIdStorage = new Map<string, string>();
 
   for (const [index, origin] of origins.entries()) {
     const originType = detectOriginType(origin.DomainName);
