@@ -1,6 +1,7 @@
 import {
   CachePolicyConfig,
   CloudFrontClient,
+  CreateDistributionCommand,
   DistributionConfig,
   OriginRequestPolicyConfig,
   ResponseHeadersPolicyConfig
@@ -51,6 +52,7 @@ export interface DebugReport {
   distributionConfig: {
     original: DistributionConfig;
     modified: DistributionConfig | null;
+    newDistributionId?: string;
   };
   functionUpdates: Array<{
     type: 'lambda' | 'function';
@@ -251,6 +253,23 @@ const main = async () => {
       new Date(debugReport.summary.startTimestamp).getTime()) /
     1000;
 
+  if (!debug) {
+    console.log(chalk.yellow("⏳ Creating new distribution..."));
+    const createCommand = new CreateDistributionCommand({
+      DistributionConfig: newDistributionConfig,
+    });
+    const createResult = await destinationClient.send(createCommand);
+    const newDistributionId = createResult.Distribution?.Id;
+    if (!newDistributionId) {
+      throw new Error("CloudFront returned no Distribution ID after creation");
+    }
+
+    debugReport.distributionConfig.newDistributionId = newDistributionId;
+
+    console.log(chalk.green.bold("✅ New distribution created successfully"));
+    console.log(chalk.blue("🆔 New Distribution ID:"), chalk.white.bold(newDistributionId), "\n");
+  }
+
   writeFileSync(
     'debug-report.json',
     JSON.stringify(debugReport, null, 2),
@@ -276,6 +295,7 @@ const main = async () => {
   console.log(chalk.dim("   └─"), chalk.blue("Origin Request Policies:"), chalk.white(`${debugReport.policiesToCreate.originRequestPolicies.length}`), "\n");
   console.log(chalk.cyan("🔗 ID Mappings:"), chalk.white.bold(`${Object.keys(debugReport.policyIdMappings).length}`));
   console.log(chalk.magenta("═══════════════════════════════════════════════"), "\n");
+  if (!debug) console.log(chalk.blue("🆔 New Distribution ID:"), chalk.white.bold(debugReport.distributionConfig.newDistributionId), '\n');
   console.log(chalk.dim("for more details, please check the debug-report.json file generated in the current directory.\n"));
 
   console.log(chalk.green.bold("🎉 Process completed successfully"));
