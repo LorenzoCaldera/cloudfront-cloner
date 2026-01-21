@@ -234,6 +234,7 @@ const main = async () => {
   delete newDistributionConfig.Aliases.Items;
   newDistributionConfig.ViewerCertificate = { CloudFrontDefaultCertificate: true };
   delete newDistributionConfig.WebACLId;
+  newDistributionConfig.Logging = { Enabled: false, Bucket: '', Prefix: '' };
 
   console.log(chalk.green.bold("✅ Distribution configuration prepared"));
   console.log(chalk.blue("📝 New CallerReference:"), chalk.white(newDistributionConfig.CallerReference));
@@ -253,6 +254,13 @@ const main = async () => {
       new Date(debugReport.summary.startTimestamp).getTime()) /
     1000;
 
+
+  writeFileSync(
+    'debug-report.json',
+    JSON.stringify(debugReport, null, 2),
+    'utf-8'
+  );
+
   if (!debug) {
     console.log(chalk.yellow("⏳ Creating new distribution..."));
     const createCommand = new CreateDistributionCommand({
@@ -269,13 +277,6 @@ const main = async () => {
     console.log(chalk.green.bold("✅ New distribution created successfully"));
     console.log(chalk.blue("🆔 New Distribution ID:"), chalk.white.bold(newDistributionId), "\n");
   }
-
-  writeFileSync(
-    'debug-report.json',
-    JSON.stringify(debugReport, null, 2),
-    'utf-8'
-  );
-
   console.log(chalk.magenta.bold("╔═══════════════════════════════════════════════╗"));
   console.log(chalk.magenta.bold("║            DEBUG REPORT GENERATED             ║"));
   console.log(chalk.magenta.bold("╚═══════════════════════════════════════════════╝"));
