@@ -240,7 +240,6 @@ const main = async () => {
   console.log(chalk.blue("📝 New CallerReference:"), chalk.white(newDistributionConfig.CallerReference));
   console.log(chalk.blue("💬 New comment:"), chalk.white(newComment), "\n");
 
-  debugReport.distributionConfig.original = originDistributionConfig.DistributionConfig;
   debugReport.distributionConfig.modified = newDistributionConfig;
 
   const totalPolicies =
