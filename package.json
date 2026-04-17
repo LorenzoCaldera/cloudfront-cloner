@@ -4,7 +4,7 @@
   "description": "CLI tool to clone CloudFront distributions and related policies",
   "author": "Lorenzo Caldera <lolocaldera15@gmail.com>",
   "license": "MIT",
-    "repository": {
+  "repository": {
     "type": "git",
     "url": "https://github.com/lorenzoCaldera/cloudfront-cloner.git"
   },
@@ -18,7 +18,7 @@
     "start": "tsc -p tsconfig.json && node dist/cli/index.js"
   },
   "devDependencies": {
-    "@types/node": "^24.10.1",
+    "@types/node": "^24.12.2",
     "typescript": "^5.9.3"
   }
 }
