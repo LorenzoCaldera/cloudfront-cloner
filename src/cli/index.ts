@@ -44,15 +44,15 @@ export interface DebugReport {
     }>;
     originRequestPolicies: Array<{
       originalId: string;
-      newId?: string;
+      newId: string;
       name: string;
       config: OriginRequestPolicyConfig;
     }>;
   };
   distributionConfig: {
-    original: DistributionConfig;
-    modified: DistributionConfig | null;
-    newDistributionId?: string;
+    original?: DistributionConfig;
+    modified?: DistributionConfig;
+    newDistributionId: string;
   };
   functionUpdates: Array<{
     type: 'lambda' | 'function';
@@ -162,8 +162,9 @@ const main = async () => {
       originRequestPolicies: []
     },
     distributionConfig: {
-      original: originDistributionConfig.DistributionConfig,
-      modified: null
+      original: originDistributionConfig,
+      modified: undefined,
+      newDistributionId: 'DEBUG_MODE_NO_DISTRIBUTION_CREATED'
     },
     functionUpdates: [],
     originUpdates: [],
@@ -172,7 +173,7 @@ const main = async () => {
 
   console.log(chalk.cyan("🔄 Processing policies and replacing IDs..."));
 
-  let newDistributionConfig = { ...originDistributionConfig.DistributionConfig };
+  let newDistributionConfig = { ...originDistributionConfig };
 
   if (!newDistributionConfig.Origins || !newDistributionConfig.Origins.Items) {
     console.warn(chalk.yellow.bold("⚠️  Warning:"), chalk.yellow("The distribution has no origins defined. Skipping origins replacement."));

@@ -1,7 +1,7 @@
 import {
   CloudFrontClient,
+  DistributionConfig,
   GetDistributionConfigCommand,
-  GetDistributionConfigCommandOutput
 } from "@aws-sdk/client-cloudfront";
 
 /**
@@ -14,7 +14,7 @@ import {
 export const getDistributionConfig = async (
   distributionId: string,
   client: CloudFrontClient,
-): Promise<GetDistributionConfigCommandOutput> => {
+): Promise<DistributionConfig> => {
   try {
     const command = new GetDistributionConfigCommand({ Id: distributionId });
     const response = await client.send(command);
@@ -23,9 +23,9 @@ export const getDistributionConfig = async (
       throw new Error(`Distribution's configuration not found by the ID: ${distributionId}`);
     }
 
-    return response;
+    return response.DistributionConfig;
   } catch (error) {
-    console.error("Error getting distribution config:", error);
+    console.error(`Error getting distribution config from id ${distributionId}:\n`, error);
     throw error;
   }
 }
