@@ -25,7 +25,7 @@ export const createDistribution = async (
 
     return response;
   } catch (error) {
-    console.error("Error creating CloudFront distribution:", error);
+    console.error(`Error creating CloudFront distribution ${config.Comment}:\n`, error);
     throw error;
   }
 };

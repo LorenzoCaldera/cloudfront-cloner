@@ -34,7 +34,7 @@ export const createCachePolicy = async (
 
     return response;
   } catch (error) {
-    console.error("Error creating cache policy:", error);
+    console.error(`Error creating cache policy ${config.Name}:\n`, error);
     throw error;
   }
 };
@@ -62,7 +62,7 @@ export const createOriginRequestPolicy = async (
 
     return response;
   } catch (error) {
-    console.error("Error creating origin request policy:", error);
+    console.error(`Error creating origin request policy ${config.Name}:\n`, error);
     throw error;
   }
 };
@@ -91,7 +91,7 @@ export const createResponseHeadersPolicy = async (
 
     return response;
   } catch (error) {
-    console.error("Error creating response headers policy:", error);
+    console.error(`Error creating response headers policy ${config.Name}:\n`, error);
     throw error;
   }
 };
