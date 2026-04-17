@@ -174,11 +174,16 @@ const main = async () => {
 
   let newDistributionConfig = { ...originDistributionConfig.DistributionConfig };
 
-  newDistributionConfig.Origins.Items = await replaceOrigins({
-    origins: newDistributionConfig.Origins?.Items || [],
-    debug,
-    debugReport
-  });
+  if (!newDistributionConfig.Origins || !newDistributionConfig.Origins.Items) {
+    console.warn(chalk.yellow.bold("⚠️  Warning:"), chalk.yellow("The distribution has no origins defined. Skipping origins replacement."));
+    newDistributionConfig.Origins = { Quantity: 0, Items: [] };
+  } else {
+    newDistributionConfig.Origins.Items = await replaceOrigins({
+      origins: newDistributionConfig.Origins?.Items || [],
+      debug,
+      debugReport
+    });
+  }
 
   newDistributionConfig = await replaceCacheBehaviors({
     distributionConfig: newDistributionConfig,
@@ -230,8 +235,15 @@ const main = async () => {
 
   newDistributionConfig.CallerReference = newRefererName + '_' + new Date().getTime();
   newDistributionConfig.Comment = newComment;
-  newDistributionConfig.Aliases.Quantity = 0;
-  delete newDistributionConfig.Aliases.Items;
+
+  if (!newDistributionConfig.Aliases) {
+    console.warn(chalk.yellow.bold("⚠️  Warning:"), chalk.yellow("The distribution has no aliases defined. Skipping aliases configuration."));
+    newDistributionConfig.Aliases = { Quantity: 0, Items: [] };
+  } else {
+    newDistributionConfig.Aliases.Quantity = 0;
+    delete newDistributionConfig.Aliases.Items;
+  }
+
   newDistributionConfig.ViewerCertificate = { CloudFrontDefaultCertificate: true };
   delete newDistributionConfig.WebACLId;
   newDistributionConfig.Logging = { Enabled: false, Bucket: '', Prefix: '' };
