@@ -13,6 +13,10 @@ export const getInUseMissingPolicies = ({
   missingResponseHeadersPolicies,
   missingOriginRequestPolicies,
 }: getInUseMissingPolicies) => {
+  if (!distributionConfig.DefaultCacheBehavior || !distributionConfig.CacheBehaviors?.Items) {
+    throw new Error('Distribution config is missing DefaultCacheBehavior or CacheBehaviors.Items');
+  }
+
   const missingCachePoliciesMap = new Map(
     missingCachePolicies.map(p => [p.CachePolicy?.Id, p])
   );
@@ -28,6 +32,7 @@ export const getInUseMissingPolicies = ({
   const inUseMissingOriginRequestPolicies = new Set<OriginRequestPolicySummary>();
 
   const DefaultCacheBehavior = distributionConfig.DefaultCacheBehavior;
+
   const {
     CachePolicyId,
     ResponseHeadersPolicyId,

@@ -34,8 +34,12 @@ const comparePoliciesByName = <
     return name;
   }));
 
+  if (!originPolicies.Items) {
+    throw new Error('Origin policies list is empty or undefined.');
+  }
+
   return originPolicies.Items
-    ?.filter(policy => {
+    .filter(policy => {
       const name = getName(policy);
       return name && !destinationNames.has(name);
     });

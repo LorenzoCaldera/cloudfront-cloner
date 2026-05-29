@@ -24,7 +24,7 @@ export async function replacePolicyId<
   destinationNameToId: Map<string, string>,
   pendingCreations: Map<string, Promise<string>>,
   debug: boolean,
-  debugReport: DebugReport | undefined,
+  debugReport: DebugReport,
   policyType: 'CACHE' | 'RESPONSE_HEADERS' | 'ORIGIN_REQUEST',
 ): Promise<string | undefined> {
   const policyTypeLabel = policyType === 'CACHE' ? 'Cache' :

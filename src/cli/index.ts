@@ -44,7 +44,7 @@ export interface DebugReport {
     }>;
     originRequestPolicies: Array<{
       originalId: string;
-      newId: string;
+      newId?: string;
       name: string;
       config: OriginRequestPolicyConfig;
     }>;

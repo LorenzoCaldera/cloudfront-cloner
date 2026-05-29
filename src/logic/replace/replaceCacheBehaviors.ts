@@ -30,8 +30,8 @@ interface IreplaceIds {
   destinationCachePolicies: CachePolicyList,
   destinationResponseHeadersPolicies: ResponseHeadersPolicyList,
   destinationOriginRequestPolicies: OriginRequestPolicyList,
-  debug?: boolean;
-  debugReport?: DebugReport;
+  debug: boolean;
+  debugReport: DebugReport;
 }
 
 const cachePolicyHandler: PolicyHandler<
@@ -39,8 +39,8 @@ const cachePolicyHandler: PolicyHandler<
   CreateCachePolicyResult
 > = {
   create: createCachePolicy,
-  extractIdFromResult: (result) => result.CachePolicy.Id,
-  extractName: (config) => config.Name,
+  extractIdFromResult: (result) => result.CachePolicy?.Id as string,
+  extractName: (config) => config.Name as string,
 };
 
 const responseHeadersPolicyHandler: PolicyHandler<
@@ -48,8 +48,8 @@ const responseHeadersPolicyHandler: PolicyHandler<
   CreateResponseHeadersPolicyResult
 > = {
   create: createResponseHeadersPolicy,
-  extractIdFromResult: (result) => result.ResponseHeadersPolicy.Id,
-  extractName: (config) => config.Name,
+  extractIdFromResult: (result) => result.ResponseHeadersPolicy?.Id as string,
+  extractName: (config) => config.Name as string,
 };
 
 const originRequestPolicyHandler: PolicyHandler<
@@ -57,8 +57,8 @@ const originRequestPolicyHandler: PolicyHandler<
   CreateOriginRequestPolicyResult
 > = {
   create: createOriginRequestPolicy,
-  extractIdFromResult: (result) => result.OriginRequestPolicy.Id,
-  extractName: (config) => config.Name,
+  extractIdFromResult: (result) => result.OriginRequestPolicy?.Id as string,
+  extractName: (config) => config.Name as string,
 };
 
 export const replaceCacheBehaviors = async ({
@@ -73,6 +73,10 @@ export const replaceCacheBehaviors = async ({
   debug = false,
   debugReport,
 }: IreplaceIds): Promise<DistributionConfig> => {
+  if (!distributionConfig.DefaultCacheBehavior) {
+    throw new Error('Distribution config is missing DefaultCacheBehavior');
+  }
+
   // Guardar config original en debug report
   if (debug && debugReport) {
     console.log(chalk.blue.bold('\n╔════════════════════════════════════════════╗'));
@@ -104,18 +108,21 @@ export const replaceCacheBehaviors = async ({
 
   for (const item of originCachePolicies.Items || []) {
     const policy = item.CachePolicy;
+    if (!policy?.Id || !policy.CachePolicyConfig?.Name) continue;
     originCachePoliciesStorage.set(policy.Id, policy.CachePolicyConfig);
     console.log(chalk.dim('   • ') + chalk.white(`Cache Policy: `) + chalk.cyan(`"${policy.CachePolicyConfig.Name}"`) + chalk.dim(` (${policy.Id})`));
   }
 
   for (const item of originResponseHeadersPolicies.Items || []) {
     const policy = item.ResponseHeadersPolicy;
+    if (!policy?.Id || !policy.ResponseHeadersPolicyConfig?.Name) continue;
     originResponseHeadersPoliciesStorage.set(policy.Id, policy.ResponseHeadersPolicyConfig);
     console.log(chalk.dim('   • ') + chalk.white(`Response Headers Policy: `) + chalk.cyan(`"${policy.ResponseHeadersPolicyConfig.Name}"`) + chalk.dim(` (${policy.Id})`));
   }
 
   for (const item of originOriginRequestPolicies.Items || []) {
     const policy = item.OriginRequestPolicy;
+    if (!policy?.Id || !policy.OriginRequestPolicyConfig?.Name) continue;
     originOriginRequestPoliciesStorage.set(policy.Id, policy.OriginRequestPolicyConfig);
     console.log(chalk.dim('   • ') + chalk.white(`Origin Request Policy: `) + chalk.cyan(`"${policy.OriginRequestPolicyConfig.Name}"`) + chalk.dim(` (${policy.Id})`));
   }
@@ -130,16 +137,19 @@ export const replaceCacheBehaviors = async ({
 
   for (const item of destinationCachePolicies.Items || []) {
     const policy = item.CachePolicy;
+    if (!policy?.Id || !policy.CachePolicyConfig?.Name) continue;
     destinationCacheNameToId.set(policy.CachePolicyConfig.Name, policy.Id);
     console.log(chalk.dim('   • ') + chalk.white(`Cache Policy: `) + chalk.cyan(`"${policy.CachePolicyConfig.Name}"`) + chalk.dim(` (${policy.Id})`));
   }
   for (const item of destinationResponseHeadersPolicies.Items || []) {
     const policy = item.ResponseHeadersPolicy;
+    if (!policy?.Id || !policy.ResponseHeadersPolicyConfig?.Name) continue;
     destinationResponseHeadersNameToId.set(policy.ResponseHeadersPolicyConfig.Name, policy.Id);
     console.log(chalk.dim('   • ') + chalk.white(`Response Headers Policy: `) + chalk.cyan(`"${policy.ResponseHeadersPolicyConfig.Name}"`) + chalk.dim(` (${policy.Id})`));
   }
   for (const item of destinationOriginRequestPolicies.Items || []) {
     const policy = item.OriginRequestPolicy;
+    if (!policy?.Id || !policy.OriginRequestPolicyConfig?.Name) continue;
     destinationOriginRequestNameToId.set(policy.OriginRequestPolicyConfig.Name, policy.Id);
     console.log(chalk.dim('   • ') + chalk.white(`Origin Request Policy: `) + chalk.cyan(`"${policy.OriginRequestPolicyConfig.Name}"`) + chalk.dim(` (${policy.Id})`));
   }

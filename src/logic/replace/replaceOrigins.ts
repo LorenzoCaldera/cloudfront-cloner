@@ -10,7 +10,7 @@ interface IReplaceOrigins {
 }
 
 export interface OriginUpdate {
-  originalId: string;
+  originalId?: string;
   originalDomain: string;
   newDomain?: string;
   originType: string;
@@ -86,6 +86,11 @@ export const replaceOrigins = async ({
   }
 
   for (const [index, origin] of origins.entries()) {
+    if (!origin.DomainName) {
+      console.log(chalk.yellow(`  ⚠️  Origin "${origin.Id}" has no domain name - skipping`));
+      continue;
+    }
+
     const originType = detectOriginType(origin.DomainName);
 
     console.log(chalk.magenta.bold(`📍 Origin #${index + 1}`) + chalk.dim(` - ID: `) + chalk.cyan(`"${origin.Id}"`));

@@ -96,7 +96,7 @@ export const replaceFunctionsARN = async ({
 }: {
   behavior: DefaultCacheBehavior;
   replaceFunctionsARNStorage: Map<string, string>;
-  debugReport?: DebugReport;
+  debugReport: DebugReport;
 }): Promise<void> => {
   // Process Lambda Function Associations
   if (behavior.LambdaFunctionAssociations?.Items?.length) {
